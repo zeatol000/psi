@@ -1,0 +1,21 @@
+
+>--verbose
+
+pack psi.main
+
+
+
+pro main(args: Array[String]): Null = {
+	
+	var hi: String = function(args)
+	println(hi)
+
+}
+
+fn function(args: Array[String]): Null = {
+
+	if (args.contains("psi")) {
+		ret "PSI RAHH"
+	}
+	ret "Hello, Psi!"
+}
