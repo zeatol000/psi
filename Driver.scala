@@ -7,40 +7,61 @@
 
 package psi.cc
 
-import scala.collection.mutable.ArrayBuffer
+/**
+ * This file handles parsing CLI args and compilation modes
+ * If the mode is compilation or packaging,
+ */
+
 import psi.cc.*
-
-
-given Context = new ContextInit(
-  rep,
-  args
-  )
+import psi.cc.utils.*
+import scala.collection.mutable.ArrayBuffer
+import scala.util.control.Breaks.{break, breakable}
 
 def process(args: cliArgs): Byte =
+   
+  args.mode match { // TODO: [unimportant] make the repl and cleaning
 
-  var rep = new Reporter
-  rep.noWarns = cliArgs.no_warns
-  rep.verbose = cliArgs.verbose
+    case 'r' => println("Opening REPL"); 3
+    case 'l' => println("Cleaning class and other compilation files"); 3
 
-  CompilerPhases() foreach ( _.run )
+    case 'c' | 'p' =>
+      var rep = new Reporter //! basically all compiler args must be created here
+      rep.noWarns = args.no_warns
+      rep.verbose = args.verbose
+  
+      given Context =
+        new ContextInit( // Context creation
+          rep,
+          args
+        )
+      
+      val phases: List[Phase] = CompilerPhases
+      phases foreach ( _._run )
 
-  0
-  // TODO: Get the reporter and change the exit code depending on 
-  // errors, warns, and compiler exceptions
+      rep.exitCode
+    
+    case _ => println(s"""
+      |Fatal error during compilation..
+      |
+      |Error details:
+      |   Psi Version -> $PsiVersion
+      |   During Phase -> CLI Parsing
+      |   Exception Message -> Internal error: mode ${args.mode} does not exist
+      """)
+      1
+  }
 
 
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 
 private[cc]
 class cliArgs
-{ //! args must be vars since in-file declaration exists
-  /* mode/s */
-  var
-    comp,
-    pack,
-    repl,
-    clean,
-    tree
-    : Boolean = false
+{ //! NOTE: args must be vars since in-file declaration exists
+  
+  var mode: Char = ' '
   var // inlcuded files
     psiFiles,
     jarFiles,
@@ -51,15 +72,48 @@ class cliArgs
     groovyFiles,
     clojureFiles
     : ArrayBuffer[String] = ArrayBuffer.empty
-  var // other
+  var
     lethal_warns,
     no_warns,
     verbose
     : Boolean = false
+  var args: Array[String] = Array()
+
+  // TODO: format this better.
+  def dump: String = s"""
+  |Mode: $mode
+  |   [c]ompile
+  |   [p]ackage
+  |   [r]epl
+  |   c[l]ean
+  |Files
+  |   jars: $jarFiles
+  |   classes: $classFiles
+  |   psi: $psiFiles
+  |   scala: $scalaFiles
+  |   java: $javaFiles
+  |   kotlin: $kotlinFiles
+  |   goovy: $groovyFiles
+  |   clojure: $clojureFiles
+  |Flags
+  |   lethal-warns: $lethal_warns
+  |   no-warns: $no_warns
+  |   verbose: $verbose
+  |Pushed Args
+  |   ${args.mkString(" ")}
+  """.stripMargin
 }
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 
 object cliArgs extends cliArgs
 {
+  // TODO: Make wildcard files and directories work
+  // Also check if files exist first
   def apply(xa: Array[String]): cliArgs =
     var ret = new cliArgs
     var
@@ -68,36 +122,46 @@ object cliArgs extends cliArgs
       : ArrayBuffer[String] = ArrayBuffer.empty
   
     // pushing args
-    xa foreach { x => x match {
-      case "compile"  => ret.comp   = true
-      case "package"  => ret.pack   = true
-      case "repl"     => ret.repl   = true
-      case "clean"    => ret.clean  = true
-      case "tree"     => ret.tree   = true
+    breakable {
+      for (i <- 0 until xa.length) xa(i) match {
+        case "compile" if (ret.mode eq ' ') => ret.mode   = 'c'
+        case "package" if (ret.mode eq ' ') => ret.mode   = 'p'
+        case "repl"    if (ret.mode eq ' ') => ret.mode   = 'r'
+        case "clean"   if (ret.mode eq ' ') => ret.mode   = 'l'
 
-      case s"${a}.psi"     => psi = psi += a
-      case s"${a}.jar"     => jar = jar += a
-      case s"${a}.class"   => cla = cla += a
-      case s"${a}.java"    => jav = jav += a
-      case s"${a}.scala"   => sca = sca += a
-      case s"${a}.kt"      => kot = kot += a
-      case s"${a}.groovy"  => gro = gro += a
-      case s"${a}.clj"     => clo = clo += a
+        case s"${a}.psi"     => psi = psi += a
+        case s"${a}.jar"     => jar = jar += a
+        case s"${a}.class"   => cla = cla += a
+        case s"${a}.java"    => jav = jav += a
+        case s"${a}.scala"   => sca = sca += a
+        case s"${a}.kt"      => kot = kot += a
+        case s"${a}.groovy"  => gro = gro += a
+        case s"${a}.clj"     => clo = clo += a
 
-      case "--lethal-warns" => ret.lethal_warns = true
-      case "--no-warns"     => ret.no_warns = true
-      case "--verbose"      => ret.verbose = true
-      case _ => println(s"Ignoring bad argument ${x}")
-    }}
+        //! NOTE: For flags, when a new one is added, remember to 
+        //! add the flag to the initial phase parser and setters
+        //! for the class
+        case "--lethal-warns" => ret.lethal_warns = true
+        case "--no-warns"     => ret.no_warns = true
+        case "--verbose"      => ret.verbose = true
+        case "--"             => ret.args = xa.drop(i + 1); break()
+        case _ => println(s"Ignoring bad argument ${xa(i)}")
+      }
+    }
 
-    ret.psiFiles      = psi
-    ret.jarFiles      = jar
-    ret.classFiles    = cla
-    ret.javaFiles     = jav
-    ret.scalaFiles    = sca
-    ret.kotlinFiles   = kot
-    ret.groovyFiles   = gro
-    ret.clojureFiles  = clo
+    ret.psiFiles      = psi.filter(_ != "")
+    ret.jarFiles      = jar.filter(_ != "")
+    ret.classFiles    = cla.filter(_ != "")
+    ret.javaFiles     = jav.filter(_ != "")
+    ret.scalaFiles    = sca.filter(_ != "")
+    ret.kotlinFiles   = kot.filter(_ != "")
+    ret.groovyFiles   = gro.filter(_ != "")
+    ret.clojureFiles  = clo.filter(_ != "")
+
+    if ( ret.psiFiles.length eq 0 ) && // why the hell are there so many parenthesis here
+      (( ret.mode eq 'c'  ) ||
+      (  ret.mode eq 'p' )) then
+      NoStackError("CLI Parsing", "At least 1 psi file is needed for compilation and packaging modes")
 
     return ret
 }

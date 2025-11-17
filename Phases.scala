@@ -9,9 +9,10 @@ package psi.cc
 
 import psi.cc.{Context, ctxt}
 import psi.cc.ast.parser.Parser
+import psi.cc.utils.FatalError
 
 private[cc]
-def CompilerPhases(): List[Phase] =
+def CompilerPhases(using Context): List[Phase] =
   new Initial()   ::  // Find all options and included files including jars
   new Parser()    ::  // Tokenize and parse source files
   //new Analyzer(c)  ::  // Name and type checking
@@ -21,13 +22,21 @@ def CompilerPhases(): List[Phase] =
 
 
 private[cc]
+abstract
 class Phase
 {
   def phaseName: String
   def phaseDesc: String 
   def isEnabled(using Context): Boolean = true
 
-  
-  def run(using ctxt: Context): Unit
+  def _run(using Context): Unit =
+    if ctxt.reporter.hasCompilerError then return ()
+    try { run }
+    catch {
+      case e: Exception =>
+        FatalError(this, e)
+    }
+
+  def run(using Context): Unit
 
 }

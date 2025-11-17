@@ -17,7 +17,7 @@ class Reporter
   var hasCompilerError: Boolean = false
   
   def error(file: String, id: Int, msg: String): Unit =                         // LATER: add better formatting and text highlighting
-
+    errors += 1
     var finalMsg: String = s"[ERR] (${id}: ERROR) ${file}\n"                    // TODO: replace the second ERROR with the name of the error id
     msg.split("\n") foreach { i => finalMsg = finalMsg + s"    | ${i}" }
     finalMsg += "    |"
@@ -28,4 +28,6 @@ class Reporter
     if hasCompilerError then 1
     else if errors > 0 then 2
     else 0
+
+  def vPrint(msg: String): Unit = if (verbose) println(msg)
 }

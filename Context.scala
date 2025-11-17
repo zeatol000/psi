@@ -7,15 +7,16 @@
 
 package psi.cc
 
-import psi.cc.*
-
 /**
  * Context is all about giving phases the info they need.
  * Such as what files it needs to compile,
  * where the .ast and .tast files are
  * 
- * i have no clue how to use givens LMAO
+ * The implicit stuff is basically an auto-parameter pushing
+ * data barrel
  */
+
+import psi.cc.*
 
 inline def ctxt(using c: Context): Context = c
 

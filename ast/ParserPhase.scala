@@ -8,7 +8,7 @@
 package psi.cc
 package ast.parser
 
-import psi.cc.{Phase, Reporter, Context, ctxt}
+import psi.cc.*
 
 private[cc]
 class Parser
@@ -17,6 +17,9 @@ class Parser
 ) extends
     Phase
 {
-  override def phaseName: String = "Parser"
-  override def phaseDesc: String = "Splits files into Array[String] for later semantic analysis"
+  def phaseName: String = "Parser"
+  def phaseDesc: String = "Splits files into Array[String] for later semantic analysis"
+  def run(using Context): Unit =
+    println(ctxt.args.dump)
+    // TODO: implement lexer and untyped parser
 }
