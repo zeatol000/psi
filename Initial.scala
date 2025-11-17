@@ -39,7 +39,7 @@ class Initial(
       psi, jar, cla, jav,
       sca, kot, gro, clo
       : ArrayBuffer[String] = ArrayBuffer.empty
-    var normal, compile, pack: ArrayBuffer[String] = ArrayBuffer.empty
+    var normal, compile, pack, run: ArrayBuffer[String] = ArrayBuffer.empty
     var mode: Char = 'n'
 
     breakable {
@@ -47,6 +47,7 @@ class Initial(
         case s"in ${a}" => a.trim match {
           case "compile" => mode = 'c'
           case "package" => mode = 'p'
+          case "run"     => mode = 'r'
           case _ => mode = 'n'          }
         case s"${a}.psi"    => psi = psi += a
         case s"${a}.jar"    => jar = jar += a
@@ -65,21 +66,17 @@ class Initial(
              case 'p' => pack = pack += xl(i)       }
           case _ => println(s"Ignoring bad argument ${xl(i)} in file ${firstFile}")
       }
-    }
-    
-    ctxt.args.psiFiles      = psi.filter(_ != "")
-    ctxt.args.jarFiles      = jar.filter(_ != "")
-    ctxt.args.classFiles    = cla.filter(_ != "")
-    ctxt.args.javaFiles     = jav.filter(_ != "")
-    ctxt.args.scalaFiles    = sca.filter(_ != "")
-    ctxt.args.kotlinFiles   = kot.filter(_ != "")
-    ctxt.args.groovyFiles   = gro.filter(_ != "")
-    ctxt.args.clojureFiles  = clo.filter(_ != "")
+    } 
 
-    ctxt.args.mode match {
-      case 'c' => pushArgs(normal ++ compile)
-      case 'p' => pushArgs(normal ++ pack)
-    }
+    ///// Save in-file referenced files for later
+    val tPsi: ArrayBuffer[String] = psi
+    val tJar: ArrayBuffer[String] = jar
+    val tCla: ArrayBuffer[String] = cla
+    val tJav: ArrayBuffer[String] = jav
+    val tSca: ArrayBuffer[String] = sca
+    val tKot: ArrayBuffer[String] = kot
+    val tGro: ArrayBuffer[String] = gro
+    val tClo: ArrayBuffer[String] = clo
 
     psi = ArrayBuffer.empty
     jar = ArrayBuffer.empty
@@ -90,44 +87,50 @@ class Initial(
     gro = ArrayBuffer.empty
     clo = ArrayBuffer.empty
 
+    ctxt.args.mode match {
+      case 'c' => pushArgs(normal ++ compile)
+      case 'p' => pushArgs(normal ++ pack)
+      case 'r' => pushArgs(normal ++ run)
+    }
+
     var invalidFiles: String = "The following files do not exist\n"
     ///// remove files that don't exist and append file type to all items
-    ctxt.args.psiFiles foreach              { f => 
+    ctxt.args.psiFiles ++ tPsi foreach { f => 
       if ! File(f + ".psi").exists then
         invalidFiles += s"\t${f + ".psi"}\n"
       else psi = psi += (f + ".psi")        }
 
-    ctxt.args.jarFiles foreach              { f => 
+    ctxt.args.jarFiles ++ tJar foreach { f => 
       if ! File(f + ".jar").exists then
         invalidFiles += s"\t${f + ".jar"}\n"
       else jar = jar += (f + ".jar")        }
 
-    ctxt.args.classFiles foreach            { f => 
+    ctxt.args.classFiles ++ tCla foreach { f => 
       if ! File(f + ".class").exists then
         invalidFiles += s"\t${f + ".class"}\n"
       else cla = cla += (f + ".class")      }
 
-    ctxt.args.scalaFiles foreach            { f => 
+    ctxt.args.scalaFiles ++ tSca foreach { f => 
       if ! File(f + ".scala").exists then
         invalidFiles += s"\t${f + ".scala"}\n"
       else sca = sca += (f + ".scala")      }
 
-    ctxt.args.javaFiles foreach             { f => 
+    ctxt.args.javaFiles ++ tJav foreach { f => 
       if ! File(f + ".java").exists then
         invalidFiles += s"\t${f + ".java"}\n"
       else jav = jav += (f + ".java")       }
 
-    ctxt.args.kotlinFiles foreach           { f => 
+    ctxt.args.kotlinFiles ++ tKot foreach { f => 
       if ! File(f + ".kt").exists then
         invalidFiles += s"\t${f + ".kt"}\n"
       else kot = kot += (f + ".kt")         }
 
-    ctxt.args.groovyFiles foreach           { f => 
+    ctxt.args.groovyFiles ++ tGro foreach { f => 
       if ! File(f + ".groovy").exists then
         invalidFiles += s"\t${f + ".groovy"}\n"
       else gro = gro += (f + ".groovy")     }
 
-    ctxt.args.clojureFiles foreach          { f => 
+    ctxt.args.clojureFiles ++ tClo foreach { f => 
       if ! File(f + ".clj").exists then
         invalidFiles += s"\t${f + ".clj"}\n"
       else clo = clo += (f + ".clj")        }
@@ -135,16 +138,16 @@ class Initial(
     if invalidFiles ne "The following files do not exist\n" then
       NoStackError(this, invalidFiles)
 
-    ctxt.args.psiFiles = psi
-    ctxt.args.jarFiles = jar
-    ctxt.args.classFiles = cla
-    ctxt.args.javaFiles = jav
-    ctxt.args.scalaFiles = sca
-    ctxt.args.kotlinFiles = kot
-    ctxt.args.groovyFiles = gro
-    ctxt.args.clojureFiles = clo
+    ctxt.args.psiFiles      = psi.distinct
+    ctxt.args.jarFiles      = jar.distinct
+    ctxt.args.classFiles    = cla.distinct
+    ctxt.args.javaFiles     = jav.distinct
+    ctxt.args.scalaFiles    = sca.distinct
+    ctxt.args.kotlinFiles   = kot.distinct
+    ctxt.args.groovyFiles   = gro.distinct
+    ctxt.args.clojureFiles  = clo.distinct
 
-    ctxt.reporter.vPrint("Initial phase complete")
+    vPrint("Initial phase complete")
 }
 
 

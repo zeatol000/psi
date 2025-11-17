@@ -57,7 +57,8 @@ case class File(
         buffer.addOne(c)
       } catch {
         case eof: EOFException => reading = false
-        case e: Exception => println("Error RAHH") // TODO: utility that formats errors
+        case e: Exception =>
+          FatalError("Utility -- File IO / read", e)
       }
       buffer.toSeq
     }

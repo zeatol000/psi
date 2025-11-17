@@ -24,10 +24,13 @@ It compiles to Java and runs on the JVM, however it also supports some fun stuff
    -  Divide into phases:
       Stuff like parsing, typer, super calls, etc.
       Use each phase as an instantialised class
-   -  
-   -
-   -
-   -
+   -  Initial - parses in-file options and throws errors with missing files
+   -  Parser - First change each file into a token stream. Then turn it into
+        An untyped AST for the typer to then turn into a Typed AST (TAST)
+   -  Analyzer and Typer - Check member names and other things.
+        Typer will also create something called a Member Tree, which
+        represents abstract members to allow for multi-threaded compilation.
+   - ...
 - [ ] Builtin Packages:
    -  Stuff like Lists and stuff
    -
@@ -62,16 +65,25 @@ $ psi --lethal-warns main.psi
 
 This can get bloated if you choose to run a bunch of options, so luckily psi has in-file configuration:  
 In either your main file, or a file named something useful like 'build.psi',
-At the top of the file, you will add some lines that begin with either > or >>  
-\> declares a single line compiler option, while >> declares multiline.
-Multiline options run until the next >, >>, or non-empty / non-comment line.  
+At the top of the file, you will add some lines that begin with either >  
+\> declares a single line compiler option
 Example:
 ```psi
-> --lethal-warns
->> -source
-main.psi
-test.psi
-util.psi
+>--lethal-warns
+>main.psi
+>test.psi
+>util.psi
+```
+
+You can also change arguments depending on the mode of the compiler..
+```psi
+>--verbose
+>in run
+>--no-warns
+>in compile
+>--lethal-warns
+>in package
+>--lethal-warns
 ```
 
 ## Syntax
@@ -84,7 +96,6 @@ But it also uses a few more syntaxes, like:
 - ( parameters )    - Parameters for functions, classes, lists, hash maps, etc.
 - { code }          - Code blocks.
 - \[ type \]          - Type parameters and bounds.
-- < value >         - Reference values.
                       For (), {}, [], and <>, see [Syntax](./docs/Syntax.md).
 - :                 - Declare a type for a value.
 - =                 - Assign a value to a variable.
@@ -114,8 +125,6 @@ Psi supports most types supported by Java, as well as some more:
 - trait             - Traits are like classes, but cannot be instantiated. Mostly used for interfaces or organizing values.
 - type              - Aliases. Effectively just ways of naming values. Eg. `type foo = bar[Int]`
                       Can also be used for naming functions in different ways. `type foo_bar(x) = fooBar(x)`
-- data              - Effectively a struct (Rust?) or case class (Scala).       ( [Data](./docs/Data.md) )
-- enum              - Enumerations.                                             ( [Data](./docs/Data.md) )
 
 ## Primitive types
 

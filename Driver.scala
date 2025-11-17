@@ -21,10 +21,10 @@ def process(args: cliArgs): Byte =
    
   args.mode match { // TODO: [unimportant] make the repl and cleaning
 
-    case 'r' => println("Opening REPL"); 3
+    case 'e' => println("Opening REPL"); 3
     case 'l' => println("Cleaning class and other compilation files"); 3
 
-    case 'c' | 'p' =>
+    case 'c' | 'p' | 'r' =>
       var rep = new Reporter //! basically all compiler args must be created here
       rep.noWarns = args.no_warns
       rep.verbose = args.verbose
@@ -61,7 +61,7 @@ private[cc]
 class cliArgs
 { //! NOTE: args must be vars since in-file declaration exists
   
-  var mode: Char = ' '
+  var mode: Char = 'r' // run by default
   var // inlcuded files
     psiFiles,
     jarFiles,
@@ -79,12 +79,12 @@ class cliArgs
     : Boolean = false
   var args: Array[String] = Array()
 
-  // TODO: format this better.
-  def dump: String = s"""
+  def dump: String = frm"""
   |Mode: $mode
   |   [c]ompile
   |   [p]ackage
-  |   [r]epl
+  |   [r]un
+  |   r[e]pl
   |   c[l]ean
   |Files
   |   jars: $jarFiles
@@ -100,8 +100,9 @@ class cliArgs
   |   no-warns: $no_warns
   |   verbose: $verbose
   |Pushed Args
-  |   ${args.mkString(" ")}
+  |   $args
   """.stripMargin
+
 }
 
 
@@ -123,11 +124,13 @@ object cliArgs extends cliArgs
   
     // pushing args
     breakable {
-      for (i <- 0 until xa.length) xa(i) match {
-        case "compile" if (ret.mode eq ' ') => ret.mode   = 'c'
-        case "package" if (ret.mode eq ' ') => ret.mode   = 'p'
-        case "repl"    if (ret.mode eq ' ') => ret.mode   = 'r'
-        case "clean"   if (ret.mode eq ' ') => ret.mode   = 'l'
+      for (i <- 0 until xa.length) xa(i).toLowerCase match {
+        case "compile" => ret.mode   = 'c'
+        case "package" => ret.mode   = 'p'
+        case "run"     => ret.mode   = 'r'
+        case "repl"    => ret.mode   = 'e'
+        case "clean"   => ret.mode   = 'l'
+        case "help"    => ret.mode   = 'h'
 
         case s"${a}.psi"     => psi = psi += a
         case s"${a}.jar"     => jar = jar += a
@@ -158,10 +161,14 @@ object cliArgs extends cliArgs
     ret.groovyFiles   = gro.filter(_ != "")
     ret.clojureFiles  = clo.filter(_ != "")
 
+    if ret.mode eq 'h' then
+      Manual.printHelp(1)
+
     if ( ret.psiFiles.length eq 0 ) && // why the hell are there so many parenthesis here
       (( ret.mode eq 'c'  ) ||
-      (  ret.mode eq 'p' )) then
-      NoStackError("CLI Parsing", "At least 1 psi file is needed for compilation and packaging modes")
+      (  ret.mode eq 'p'  ) ||
+      (  ret.mode eq 'r' )) then
+      ExternalError("At least 1 psi file is needed for compilation, packaging, and running modes")
 
     return ret
 }

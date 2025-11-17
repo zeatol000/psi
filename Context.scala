@@ -18,7 +18,9 @@ package psi.cc
 
 import psi.cc.*
 
+// Easy access
 inline def ctxt(using c: Context): Context = c
+inline def vPrint(x: String)(using c: Context): Unit = c.reporter.vPrint(x)
 
 private[cc]
 abstract class Context
