@@ -7,17 +7,17 @@
 
 package psi.cc
 
-import psi.cc.{Context, ctxt}
-import psi.cc.ast.parser.Parser
+import psi.cc.*
+import psi.cc.ast.Parser
 import psi.cc.utils.FatalError
 
 private[cc]
 def CompilerPhases(using Context): List[Phase] =
   new Initial()   ::  // Find all options and included files including jars
   new Parser()    ::  // Tokenize and parse source files
-  //new Analyzer(c)  ::  // Name and type checking
-  //new BCodeGen(c)  ::  // Class file generation
-  //new Packager(c)  ::  // Package into a jar if told
+  //new Analyzer()  ::  // Name and type checking
+  //new BCodeGen()  ::  // Class file generation
+  //new Packager()  ::  // Package into a jar if told
   Nil
 
 

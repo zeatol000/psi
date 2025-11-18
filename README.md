@@ -6,6 +6,7 @@ It compiles to Java and runs on the JVM, however it also supports some fun stuff
 <!-- 
 !NOTE:
 - Use the Scala 1.0.0-b5 (earliest) compiler as examples
+- Use Scala 3 compiler for better examples
 - Get it working before making it good
 
 !TODO:
@@ -65,7 +66,7 @@ $ psi --lethal-warns main.psi
 
 This can get bloated if you choose to run a bunch of options, so luckily psi has in-file configuration:  
 In either your main file, or a file named something useful like 'build.psi',
-At the top of the file, you will add some lines that begin with either >  
+At the top of the file, you will add some lines that begin with >  
 \> declares a single line compiler option
 Example:
 ```psi
@@ -78,10 +79,13 @@ Example:
 You can also change arguments depending on the mode of the compiler..
 ```psi
 >--verbose
+
 >in run
 >--no-warns
+
 >in compile
 >--lethal-warns
+
 >in package
 >--lethal-warns
 ```
@@ -143,6 +147,7 @@ Name            Type aliases        Description
 
 [Types](./docs/Types.md)
 
+<!--
 ## Classes vs Modules
 
 Classes (including objects and packages) can have values inside them.
@@ -185,5 +190,5 @@ val x: Int = 2          // Int::x has already been declared, so invalid
 This gets a lot more complicated especially if you try to print one of the values.
 
 [Modules](./docs/Modules.md)
-
+-->
 

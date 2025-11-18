@@ -7,6 +7,21 @@
 
 package psi.cc
 
+/* TODO:
+ * Find a way of making the compiler ignore files that have already been compiled
+ * This would also let you run a project multiple times without recompiling or packaging
+ *
+ * Current:
+ * $ psi run main.psi -- abc      // compiles (good)
+ * $ psi run main.psi -- def      // compiles again (bad)
+ *
+ * Better:
+ * $ psi run main.psi -- abc      // compiles
+ * $ psi run main.psi -- def      // doesn't compile
+ * // user edits main.psi
+ * $ psi run main.psi -- ghj      // compiles
+ */
+
 import psi.cc.*
 import psi.cc.utils.*
 import scala.io.Source

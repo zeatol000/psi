@@ -6,7 +6,7 @@
 \*                                              */
 
 package psi.cc
-package ast.parser
+package ast
 
 import psi.cc.*
 
