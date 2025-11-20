@@ -162,7 +162,7 @@ class Initial(
     ctxt.args.groovyFiles   = gro.distinct
     ctxt.args.clojureFiles  = clo.distinct
 
-    vPrint("Initial phase complete")
+    vp"Setup complete"
 }
 
 

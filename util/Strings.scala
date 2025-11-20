@@ -13,6 +13,7 @@ package utils
  */
 
 import scala.collection.mutable.ArrayBuffer
+import psi.cc.*
 
 extension (sc: StringContext)
   def frm(args: Any*): String =
@@ -31,3 +32,7 @@ extension (sc: StringContext)
       case _ => x
     }}.toSeq
     sc.s(formatted*)
+
+  def vp(args: Any*)(using Context): Unit =
+    val format = sc.s(args*)
+    ctxt.reporter.vPrint(format)

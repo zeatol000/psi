@@ -1,1 +1,5 @@
+>--verbose
 
+pro test(): Null = {
+	println("Hello, World!")
+}

@@ -1,8 +1,6 @@
 
 >--verbose
 
-pack psi.main
-
 
 
 pro main(args: Array[String]): Null = {

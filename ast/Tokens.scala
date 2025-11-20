@@ -67,7 +67,8 @@ abstract class Tokens
   inline val TRY         = 36;  push( TRY,         "try"           )
   inline val CATCH       = 37;  push( CATCH,       "catch"         )
   inline val FINALLY     = 38;  push( FINALLY,     "finally"       )
-  inline val RETURN      = 39;  push( RETURN,      "return"        )
+  inline val RETURN      = 39;  push( RETURN,      "ret"           )
+  inline val THROW       = 40;  push( THROW,       "throw"         )
 
   /* data types */
   inline val VAL         = 50;  push( VAL,         "val"           )

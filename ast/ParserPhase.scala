@@ -12,14 +12,15 @@ import psi.cc.*
 
 private[cc]
 class Parser
-(
-  using Context
-) extends
+extends
     Phase
 {
   def phaseName: String = "Parser"
-  def phaseDesc: String = "Splits files into Array[String] for later semantic analysis"
+  def phaseDesc: String = "Scan and parse sources"
   def run(using Context): Unit =
-    println(ctxt.args.dump)
-    // TODO: implement lexer and untyped parser
+    val parsers: Array[FileParser] = new Array(ctxt.args.psiFiles.length)
+
+    for (i <- 0 until parsers.length)
+      parsers(i) = new FileParser(ctxt.args.psiFiles(i))
+      parsers(i).parse
 }

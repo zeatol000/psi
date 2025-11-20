@@ -1,4 +1,4 @@
-# Psi - Scala Based Language
+# Psi - Another JVM Language
 
 Psi is a language that is based off of Scala and (sorta) Rust.  
 It compiles to Java and runs on the JVM, however it also supports some fun stuff that wouldn't be possible in almost any other language.
@@ -122,11 +122,12 @@ Psi supports most types supported by Java, as well as some more:
 - fn                - Function: where most of your code goes.                   ( [Functions](./docs/Functions.md) )
 - sub               - Subroutine: used for concurrent syncronised code.         ( [Functions](./docs/Functions.md) )
 - co                - Coroutine: used for concurrent unsyncronised code
-- op                - Operation: experimental features for quantum computiung   ( [Quantum](./docs/Quantum.md) )
+<!-- - op                - Operation: experimental features for quantum computiung   ( [Quantum](./docs/Quantum.md) ) -->
 - pack              - Package: used for multi-file code.
 - obj               - Object. Effectively a package but inside another value like a class or package. Mostly usef for organizing code.
 - class             - Intsantialisable class. Can take parameters, unlike obj or pack.
 - trait             - Traits are like classes, but cannot be instantiated. Mostly used for interfaces or organizing values.
+<!-- - mod               - Module declaration                                        ( [Modules](./docs/Modules.md) ) -->
 - type              - Aliases. Effectively just ways of naming values. Eg. `type foo = bar[Int]`
                       Can also be used for naming functions in different ways. `type foo_bar(x) = fooBar(x)`
 

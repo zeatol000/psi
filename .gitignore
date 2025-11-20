@@ -1,5 +1,7 @@
 .bsp/
 .scala-build/
+*.class
+*.tasty
 
 # macOS
 .DS_Store

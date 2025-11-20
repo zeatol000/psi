@@ -6,20 +6,10 @@
 \*                                              */
 
 package psi.cc
-package backend.primitives
+package ast
 
-/*
- * Primitive characters in the JVM:
- * z - Boolean
- * b - Byte
- * s - Short
- * c - Char
- * i - Int
- * l - Long
- * f - float
- * d - double
- * a - reference (classes, strings, etc)
- */
-
-abstract class primitives
-{}
+private[ast]
+class Scanner
+{
+  val token = 0 // temp
+}
