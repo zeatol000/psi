@@ -7,6 +7,8 @@
 
 package psi.cc
 
+import psi.cc.*
+
 class Reporter
 {
   var noWarns: Boolean = false
@@ -16,9 +18,9 @@ class Reporter
   var warnings: Int = 0
   var hasCompilerError: Boolean = false
   
-  def error(file: String, id: Int, msg: String): Unit =                         // LATER: add better formatting and text highlighting
+  def error(msg: String, file: String)(using Context): Unit =                         // LATER: add better formatting and text highlighting
     errors += 1
-    var finalMsg: String = s"[ERR] (${id}: ERROR) ${file}\n"                    // TODO: replace the second ERROR with the name of the error id
+    var finalMsg: String = s"[ERR] (_ID_HERE_: ERROR) ${file}\n"                    // TODO: replace the second ERROR with the name of the error id
     msg.split("\n") foreach { i => finalMsg = finalMsg + s"    | ${i}" }
     finalMsg += "    |"
 

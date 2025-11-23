@@ -4,11 +4,6 @@ Psi is a language that is based off of Scala and (sorta) Rust.
 It compiles to Java and runs on the JVM, however it also supports some fun stuff that wouldn't be possible in almost any other language.
 
 <!-- 
-!NOTE:
-- Use the Scala 1.0.0-b5 (earliest) compiler as examples
-- Use Scala 3 compiler for better examples
-- Get it working before making it good
-
 !TODO:
 - [ ] Docs:
    -  Options.md        - Language options like -source, -lethal-warns, etc
@@ -43,16 +38,24 @@ It compiles to Java and runs on the JVM, however it also supports some fun stuff
 You should have control over your code. Too many abstraction layers destroys control.         <!-- cough cough, python.. -->
 Compilation time is irrelevant as long as it means efficient or fast code.
 
+## Installation
+
+Requirements:
+- Scala-cli
+- any Java released in the past 4 years
+
+To install:
+- Clone this repository
+- Run `scala-cli package .; mv 'psi.cc.psi$package' psi`
+
 ## Usage
 
 For the command line, these are the large majority of commands that you'll use:  
 ```bash
-$ psi                       # point to a help menu
 $ psi main.psi              # run file main.psi
 $ psi main.psi -- hi        # run file main.psi and push arg "hi"
 $ psi repl                  # open the REPL
-$ psi repl main.psi         # open the REPL, but include main.psi's values
-$ psi package main.psi      # compile main.psi into an executable (if it has an entrypoint)
+$ psi package main.psi      # compile main.psi into an executable jar (if it has an entrypoint)
                             # or compile main.psi into a jar file for other projects.
 ```
 <!-- other examples -->
@@ -94,17 +97,17 @@ You can also change arguments depending on the mode of the compiler..
 
 Psi itself looks similar to Scala and Rust.
 But it also uses a few more syntaxes, like:
-- // comments       - Single line comments.
-- /* comments */    - Multi line comments.
-- @annotations      - Annotations are ways to tell the compiler what to do.     ( [Annotations](./docs/Annotations.md) )
-- ( parameters )    - Parameters for functions, classes, lists, hash maps, etc.
-- { code }          - Code blocks.
-- \[ type \]          - Type parameters and bounds.
-                      For (), {}, [], and <>, see [Syntax](./docs/Syntax.md).
-- :                 - Declare a type for a value.
-- =                 - Assign a value to a variable.
-- .                 - Access a value in a class or object.
-- ::                - Access a value in a module.
+- // comments       Single line comments.
+- /* comments */    Multi line comments.
+- @annotations      Annotations are ways to tell the compiler what to do.     ( [Annotations](./docs/Annotations.md) )
+- ( parameters )    Parameters for functions, classes, lists, hash maps, etc.
+- { code }          Code blocks.
+- \[ type \]          Type parameters and bounds.
+                      For (), {}, and [], see [Syntax](./docs/Syntax.md).
+- :                 Declare a type for a value.
+- =                 Assign a value to a variable.
+- .                 Access a value in a class or object.
+<!-- - ::                Access a value in a module. -->
                       See [Children](./docs/Children.md).
 Other syntaxes can be found in [Syntax](./docs/Syntax.md).
 But for the most part, most syntaxes are self-explanatory or arent built into Psi.
@@ -133,18 +136,24 @@ Psi supports most types supported by Java, as well as some more:
 
 ## Primitive types
 
-Name            Type aliases        Description
-- Byte              - I8            Default for small iterables
-- Short             - I16
-- Int               - I32           Default for most values
-- Long              - I64
-- Float             - F32
-- Double            - F64           Default for decimals
-- Char              - Character
-- String            - String
-- Bit               - Boolean
-- Unsigned          - U16           Not really 'primitive' but its basically just a char being used as a number
-- Null              - Unit, Void    Represents nothing. Should not be assigned to variables, only functions.
+Name | Type aliases | Notes
+- Byte - I8 - Default for small iterables
+- Short - I16
+- Int - I32 - Default for most values
+- Long - I64
+- Float - F32
+- Double - F64 - Default for decimals
+- Char - Character
+- String - String
+- Bit - Boolean
+<!-- - Unsigned          - U16           Not really 'primitive' but its basically just a char being used as a number -->
+- Null - Unit, Void - Changes depending on how it is used
+
+When a function explicitly returns a Null, then the return value will be ignored  
+like if it were a void in C or Java. However, if anything is a reference type  
+(anyref) such as classes or strings, then null will mean the referenced value  
+doesn't exist. This is basically the difference between Null and null, where  
+Null is a type and null is a literal, even if the type of null is Null.
 
 [Types](./docs/Types.md)
 
@@ -192,4 +201,5 @@ This gets a lot more complicated especially if you try to print one of the value
 
 [Modules](./docs/Modules.md)
 -->
+
 

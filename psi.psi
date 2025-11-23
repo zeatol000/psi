@@ -1,5 +1,7 @@
 >--verbose
 
-pro test(): Null = {
+pro main(args: Array[String]): Null = {
 	println("Hello, World!")
 }
+
+val x: Int = 42

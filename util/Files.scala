@@ -13,7 +13,8 @@ package utils
  */
 
 import psi.cc.*
-import scala.util.Using
+import scala.util.{Using, Try, Failure, Success}
+import scala.io.Source
 import scala.collection.mutable.ListBuffer
 import java.nio.file.{Paths, Files, Path}
 import java.io.*
@@ -34,27 +35,21 @@ case class File(
   def createF: Unit = Files.createFile     (Paths.get(path))
 
   
-  def writeB(bytes: Seq[Byte]): Unit = write( // What the fuck is this
-    (for (b <- 0 until bytes.length) yield
-      if (b % 2 eq 0) && (b - 1 < bytes.length)
-      then (( bytes(b) << 8 )|( bytes(b + 1) & 0xFF )).toChar
-      else (( bytes(b) << 8 )|( ( 0 : Byte ) & 0xFF )).toChar
-    ).toSeq)
-  def write(chars: Seq[Char]): Unit =
+  def write(chars: Seq[Byte]): Unit =
     Using.resource(new DataOutputStream(new FileOutputStream(path))) { dataOStream =>
       chars.foreach { c =>
-        dataOStream.writeChar(c)
+        dataOStream.writeByte(c)
       }
     }
 
 
-  def read: Seq[Char] =
+  def read: Seq[Byte] =
     Using.resource(new DataInputStream(new FileInputStream(path))) { DataIStream =>
-      val buffer = ListBuffer[Char]()
+      val buffer = ListBuffer[Byte]()
       var reading = true
       while (reading) try {
-        val c = DataIStream.readChar()
-        buffer.addOne(c)
+        val c = DataIStream.readByte()
+        buffer.addOne(c.toByte)
       } catch {
         case eof: EOFException => reading = false
         case e: Exception =>

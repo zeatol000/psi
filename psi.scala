@@ -1,7 +1,9 @@
-
-/* CONFIG */
-//> using scala "3.7.4"
-
+/*     ____  _____ ____                         *\
+ *    / __ \/ ___//  _/                         *
+ *   / /_/ /\__ \ / /       Psi-lang 2025       *
+ *  / ____/___/ // /                            *
+ * /_/    /____/___/                            *
+\*                                              */
 
 package psi.cc
 
@@ -24,5 +26,4 @@ def main(args: Array[String]): Unit =
     else
       run.toInt
   )
-
 

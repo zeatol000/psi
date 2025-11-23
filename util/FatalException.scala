@@ -15,6 +15,9 @@ package utils
 
 import psi.cc.*
 
+def Error(msg: String, path: String)(using Context): Unit =
+  ctxt.reporter.error(msg, path)
+
 def FatalError(phase: String, exception: Exception): Unit =
   println(s"""
     |Fatal error during compilation..
@@ -25,9 +28,8 @@ def FatalError(phase: String, exception: Exception): Unit =
     |   Exception Message -> ${exception.getMessage()}
     |
     |Printing stack trace...
-    |${exception.getStackTrace()}
     """.stripMargin
-  )
+  ); exception.printStackTrace()
   System.exit(1)
 
 def FatalError(phase: Phase, exception: Exception): Unit = 
@@ -41,21 +43,12 @@ def FatalError(phase: Phase, exception: Exception): Unit =
     |   Exception Message -> ${exception.getMessage()}
     |
     |Printing stack trace...
-    |${exception.getStackTrace()}
     """.stripMargin
-  )
+  ); exception.printStackTrace()
   System.exit(1)
 
-def NoStackError(phase: String, msg: String): Unit =
-  println(s"""
-    |Fatal error during compilation..
-    |
-    |Error details:
-    |   Psi Version -> $PsiVersion
-    |   During Phase -> $phase
-    |   Exception Messasge -> $msg
-    """.stripMargin)
-  System.exit(2)
+def NoStackError(msg: String)(using phase: Phase): Unit =
+  NoStackError(phase, msg)
 
 def NoStackError(phase: Phase, msg: String): Unit =
   println(s"""

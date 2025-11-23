@@ -79,7 +79,7 @@ abstract class Tokens
   inline val FN          = 55;  push( FN,          "fn"            )
   inline val OP          = 56;  push( OP,          "op"            )
   inline val PACKAGE     = 57;  push( PACKAGE,     "package"       )
-  inline val OBJ         = 58;  push( OBJ,         "pbj"           )
+  inline val OBJ         = 58;  push( OBJ,         "obj"           )
   inline val CLASS       = 59;  push( CLASS,       "class"         )
   inline val TRAIT       = 60;  push( TRAIT,       "trait"         )
   inline val TYPE        = 61;  push( TYPE,        "type"          )
@@ -95,7 +95,7 @@ abstract class Tokens
   inline val NEWLINE     = 76;  push( NEWLINE,     "!newline"      ) // Going to be really useful in figuring out whether something is the end of a statement
   inline val EQUALS      = 77;  push( EQUALS,      "="             )
   inline val COLON       = 78;  push( COLON,       ":"             )
-  inline val DOUBLECOLON = 79;  push( DOUBLECOLON, "::"            )
+  //inline val DOUBLECOLON = 79;  push( DOUBLECOLON, "::"            )
   inline val LARRS       = 80;  push( LARRS,       "<-"            )
   inline val LARRB       = 81;  push( LARRB,       "<="            )
   inline val RARRS       = 82;  push( RARRS,       "->"            )

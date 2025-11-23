@@ -8,6 +8,5 @@
 package psi.cc
 package ast
 
-private[ast]
 class AST
 {}

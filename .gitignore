@@ -2,11 +2,16 @@
 .scala-build/
 *.class
 *.tasty
+*.jar
+META-INF/
+lib/
+.bin/
 
 # macOS
 .DS_Store
 
 # sbt specific
+.sbt/
 dist/*
 target/
 lib_managed/
@@ -35,3 +40,4 @@ metals.sbt
 .idea
 .idea_modules
 /.worksheet/
+

@@ -17,6 +17,7 @@ package psi.cc
  */
 
 import psi.cc.*
+import psi.cc.ast.*
 
 // Easy access
 inline def ctxt(using c: Context): Context = c
@@ -27,6 +28,8 @@ abstract class Context
 {
   def reporter: Reporter
   def args: cliArgs
+  def ast: AST
+  def ++(x: AST): Unit
 
   protected given Context = this
 }
@@ -34,10 +37,13 @@ abstract class Context
 class ContextInit
 (
   var _reporter: Reporter,
-  var _args: cliArgs
+  var _args: cliArgs,
+  var _ast: AST = null,
 ) extends
     Context
 {
   def reporter: Reporter = _reporter
   def args: cliArgs = _args
+  def ast: AST = _ast
+  def ++(x: AST): Unit = _ast = x
 }

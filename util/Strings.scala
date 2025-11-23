@@ -36,3 +36,7 @@ extension (sc: StringContext)
   def vp(args: Any*)(using Context): Unit =
     val format = sc.s(args*)
     ctxt.reporter.vPrint(format)
+
+  def er(args: Any*)(using Context): String =
+    // TODO: error formatting
+    sc.s(args*)

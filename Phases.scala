@@ -25,6 +25,7 @@ private[cc]
 abstract
 class Phase
 {
+  given Phase = this
   def phaseName: String
   def phaseDesc: String 
   def isEnabled(using Context): Boolean = true

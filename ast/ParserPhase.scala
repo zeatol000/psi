@@ -20,6 +20,8 @@ extends
   def run(using Context): Unit =
     val parsers: Array[FileParser] = new Array(ctxt.args.psiFiles.length)
 
+    ctxt ++ new AST
+
     for (i <- 0 until parsers.length)
       parsers(i) = new FileParser(ctxt.args.psiFiles(i))
       parsers(i).parse
