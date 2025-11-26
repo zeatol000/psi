@@ -1,6 +1,10 @@
 
-pro main(args: Array[String]): Null = {
-	var x: Int = 5 
+pro main(): Null = {
+	uhh("hi yalll")
+}
+
+fn uhh(x: String): Null = {
+	println(x)
 }
 
 

@@ -11,6 +11,7 @@ package ast
 import psi.cc.ast.*
 import psi.cc.ast.Tokens.*
 import scala.collection.*
+import scala.util.control.Breaks.{break, breakable}
 
 class Untpd
 (
@@ -91,49 +92,75 @@ class Untpd
 
   /** AST table */
   def dumpAst: String =
-    (nestBuf.map { t => t match {
-      case v: VALDEF    => s"""|VALDEF
-        |${v.modifiers.mkString(", ")}
-        |${v.name} (NameRef)
-        |${v.valType} (NameRef)
-        |${v.value}         """.stripMargin
-      case f: FNDEF     => s"""|FNDEF
-        |${f.modifiers.mkString(", ")}
-        |${f.name} (NameRef)
-        |${f.valType} (NameRef)
-        |${f.body.length}   """.stripMargin
-      case o: OPDEF     => s"""|OPDEF
-        |${o.modifiers.mkString(", ")}
-        |${o.name} (NameRef)
-        |${o.valType} (NameRef)
-        |${o.body.length}   """.stripMargin
-      case c: CLASSDEF  => s"""|CLASSDEF
-        |${c.modifiers.mkString(", ")}
-        |${c.name} (NameRef)
-        |${c.body.length}   """.stripMargin
-      case o: OBJDEF    => s"""|OBJDEF
-        |${o.modifiers.mkString(", ")}
-        |${o.name} (NameRef)
-        |${o.body.length}   """.stripMargin
-      case a: APPLY     => s"""|APPLY
-        |${a.name} (NameRef)
-        |${a.params}        """.stripMargin
-      case s: SELECT    => s"""
-        |${s.obj} (NameRef) """.stripMargin
+    (nestBuf.filter(_ != null).map { t => t match {
+
+      case v: VALDEF    => s"""VALDEF
+    ${v.modifiers.map(tokenStr(_)).mkString(", ")}
+    ${identifiers(v.name).map(_.toChar).mkString("")}
+    ${identifiers(v.valType).map(_.toChar).mkString("")}
+    ${v.value}         """
+
+      case f: FNDEF     => s"""FNDEF
+    ${f.modifiers.map(tokenStr(_)).mkString(", ")}
+    ${identifiers(f.name).map(_.toChar).mkString("")}
+    ${f.paramGet}
+    ${identifiers(f.valType).map(_.toChar).mkString("")}
+    ${f.body.length}   """
+
+      case o: OPDEF     => s"""OPDEF
+    ${o.modifiers.map(tokenStr(_)).mkString(", ")}
+    ${identifiers(o.name).map(_.toChar).mkString("")}
+    ${identifiers(o.valType).map(_.toChar).mkString("")}
+    ${o.body.length}   """
+
+      case c: CLASSDEF  => s"""CLASSDEF
+    ${c.modifiers.map(tokenStr(_)).mkString(", ")}
+    ${identifiers(c.name).map(_.toChar).mkString("")}
+    ${c.body.length}   """
+
+      case o: OBJDEF    => s"""OBJDEF
+    ${o.modifiers.map(tokenStr(_)).mkString(", ")}
+    ${identifiers(o.name).map(_.toChar).mkString("")}
+    ${o.body.length}   """
+
+      case a: APPLY     => s"""APPLY
+    ${identifiers(a.name).map(_.toChar).mkString("")}
+    ${a.paramGet}      """
+
+      case s: SELECT    => s"""SELECT
+    ${identifiers(s.obj).map(_.toChar).mkString("")} """
+
+      case null         => s"""NULLREF ERROR"""
     }}).mkString("\n")
+
   var opBuf: untpdToken = null
   var nestBuf           = mutable.Seq[untpdToken]()
   var paramBuf: pBuf    = null
 
   // opBuf
+  infix def ! (x: untpdToken): Unit = 
+    this.<<(x)
+    var i = nestBuf.length - 1
+    breakable { while (i >= 0) {
+      nestBuf(i) match {
+        case f: FNDEF    if f.open => f.body = f.body :+ opBuf; break
+        case o: OPDEF    if o.open => o.body = o.body :+ opBuf; break
+        case c: CLASSDEF if c.open => c.body = c.body :+ opBuf; break
+        case o: OBJDEF   if o.open => o.body = o.body :+ opBuf; break
+        case _ => i = i - 1
+      }
+    }}
+    
   infix def <> (x: pBuf): Unit = paramBuf = x
   infix def operate (x: untpdToken): Unit =
-    if (opBuf != null) this.<<(opBuf)  
+    if (opBuf != null) this.!(opBuf)
     opBuf = x
+
   infix def << (x: untpdToken): Unit =
     nestBuf = nestBuf :+ opBuf
     nestBuf = nestBuf.distinct
     opBuf = null
+
   def canParam : Boolean = opBuf match {
     case f: FNDEF => true
     case o: OPDEF => true
@@ -174,7 +201,15 @@ class FNDEF (
 
   var open: Boolean = true,
   val startDepth: Byte,
-  ) extends untpdToken
+  ) extends untpdToken {
+  def paramGet: String = 
+    val p = params.filterNot(_ == null).map { pb => // RAM hates to see me coming 
+      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })" +
+      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]" +
+      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
+    }
+    p mkString "\n"
+}
 
 
 
@@ -187,7 +222,15 @@ class OPDEF (
 
   var open: Boolean = true,
   val startDepth: Byte,
-  ) extends untpdToken
+  ) extends untpdToken {
+  def paramGet: String = 
+    val p = params.map { pb => // RAM hates to see me coming 
+      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })" +
+      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]" +
+      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
+    }
+    p mkString "\n"
+}
 
 
 
@@ -218,7 +261,15 @@ class OBJDEF (
 class APPLY (
   var name: NameRef = 0,
   var params: paramType = mutable.Seq(),
-  ) extends untpdToken
+  ) extends untpdToken {
+  def paramGet: String = 
+    val p = params.map { pb => // RAM hates to see me coming 
+      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })" +
+      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]" +
+      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
+    }
+    p mkString "\n"
+}
 
 
 

@@ -82,24 +82,28 @@ class FileParser
     )
   }
     // TODO:
-    // - sc: be able to tokenize things
-    // - this: read the entire file and use the scanner
-    // - pn: transform into the normal patterns
+    // - Finish keywords and punctuation handling
+    // - Allow for types to have internal types. Eg: Array[ String ]
     // - ast: push the syntax made by this into an internal untpd class,
     //   write it to a file, and keep track of all untpd files.
+    //
+    // the scanner was so good, just for the parser to be a nightname (wilted flower emoji)
   
 
 
   var loopDepth: Byte = 0 // what kind of instane bastard would use 128 nested blocks
-  var lookingForId: Boolean = false
+  def lookingForId: Boolean = ((idType != ' ') && (idType != '?'))
   var idType: Char = ' '                    // type of identifier -- [n]ame, [:]type, [=]value
   var modifierStack = mutable.Seq[Byte]()   // stack of modifiers
   var inParam: Boolean = false
   var paramType: Char = ' '                 // type of param -- () [] <>
+  var ApplyStack = mutable.Seq[Byte]()
 
-  def Identifier(using td: TD): Unit = {
-    if (!lookingForId) /* handle APPLY and SELECT -- for now, add to name table and return*/ {
-      untpd addId td.stack
+  def Identifier(using td: TD): Unit = { 
+    if (!lookingForId) /* handle APPLY and SELECT */ {
+      ApplyStack = td.stack
+      idType = '?'
+      untpd << untpd.opBuf
       return
     }
 
@@ -142,12 +146,17 @@ class FileParser
           case '=' => untpd << o
         }
 
+      case a: APPLY           if !inParam =>
+        untpd addId td.stack
+        a.name = untpd indexOf td.stack
 
+      case _                  if !inParam => println(s"null id: ${td.stack.map(_.toChar).mkString("")}")
+        
 
-      case _ if inParam =>
+      case _                  if  inParam =>
         idType match {
 
-          case 'n' =>
+          case 'n' | ' ' | '?' =>
             untpd addId td.stack
             paramType match {
 
@@ -175,7 +184,7 @@ class FileParser
                   untpd.paramBuf.sharp(end)._3
                 )
 
-            }
+}
 
           case ':' =>
             untpd addId td.stack
@@ -256,12 +265,11 @@ class FileParser
         }*/
     }
     idType = ' '
-    lookingForId = false
   }
 
 
 
-  def Token(using td: TD)(using Context): Unit = {
+  def Token(using td: TD)(using Context): Unit = { 
     if (lookingForId) Identifier // force token to be an identifier
 
     if (isDeclare) td.token match {
@@ -269,43 +277,43 @@ class FileParser
         untpd operate new VALDEF( modifierStack )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case VAR  =>
         untpd operate new VALDEF( modifierStack :+ VAR )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case PRO  =>
         untpd operate new FNDEF( modifierStack :+ PRO, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case SUB  =>
         untpd operate new FNDEF( modifierStack :+ SUB, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case CO   =>
         untpd operate new FNDEF( modifierStack :+ CO, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case FN   =>
         untpd operate new FNDEF( modifierStack, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case TYPE =>
         untpd operate new VALDEF ( modifierStack :+ TYPE )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
         
 
 
@@ -314,25 +322,25 @@ class FileParser
         untpd operate new OBJDEF ( modifierStack, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case CLASS  =>
         untpd operate new CLASSDEF ( modifierStack, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case TRAIT  =>
         untpd operate new CLASSDEF ( modifierStack :+ TRAIT, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
       case MOD    => // this probably needs it's own MODDEF token, but lets wait until 1.0.0
         untpd operate new OBJDEF ( modifierStack :+ MOD, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        lookingForId = true
+        
 
 
 
@@ -342,16 +350,35 @@ class FileParser
 
     else if (isParen) td.token match {
       case LPAREN =>
+        if (idType == '?') {
+          untpd operate new APPLY
+          untpd addId ApplyStack
+          untpd.opBuf match { case a: APPLY => a.name = untpd indexOf ApplyStack; case _ => }
+        }
+        idType = 'n'
         inParam = true
         untpd <> new pBuf
         paramType = '('
 
       case LBRACKET =>
+         if (idType == '?') {
+          untpd operate new APPLY
+          untpd addId ApplyStack
+          untpd.opBuf match { case a: APPLY => a.name = untpd indexOf ApplyStack; case _ => }
+          idType = ' '
+        }      
         inParam = true
+        idType = ':'
         untpd <> new pBuf
         paramType = '['
 
       case LSHARP =>
+         if (idType == '?') {
+          untpd operate new APPLY
+          untpd addId ApplyStack
+          untpd.opBuf match { case a: APPLY => a.name = untpd indexOf ApplyStack; case _ => }
+          idType = ' '
+        }      
         inParam = true
         untpd <> new pBuf
         paramType = '<'
@@ -363,6 +390,7 @@ class FileParser
       case RPAREN | RBRACKET | RSHARP =>
         inParam = false
         paramType = ' '
+        if (td.token == RBRACKET) idType = ' '
         untpd.opBuf match {
           case f: FNDEF    => f.params = f.params :+ untpd.paramBuf
           case o: OPDEF    => o.params = o.params :+ untpd.paramBuf
@@ -391,11 +419,16 @@ class FileParser
 
     } else if (isPunctuation) td.token match {
       case COLON =>
-        lookingForId = true
         idType = ':'
+
       case EQUALS =>
-        lookingForId = true
-        idType = '='
+        if (inParam) idType = '='
+        else untpd.opBuf match {
+          case v: VALDEF => idType = '='
+          case s: SELECT => idType = '='
+          case _ => void
+        }
+
       case _ =>
         Error(s"token ${tokenStr(td.token)} isn't implemented yet.. Oopsie", path)
         // TODO: add the other punctuation
