@@ -14,6 +14,12 @@ import psi.cc.utils.*
 import scala.collection.*
 import scala.annotation.tailrec
 
+case class TD (
+  stack: mutable.Seq[Byte],
+  token: Int,
+  start: Int
+  )
+
 private[ast]
 class Scanner
 (
@@ -28,6 +34,7 @@ class Scanner
   var char: Byte = 0
   var pos: Int = 0
   var stack: mutable.Seq[Byte] = mutable.Seq()
+  var start: Int = 0
   var base: Byte = 10 
 
   def fetchToken(): Unit =
@@ -72,8 +79,9 @@ class Scanner
             '/' => true; case _ => false}))
           { popAll(); push(char) }
 
-          if (tokenStr indexOf stack.map(_.toChar).mkString("") ne -1)
-            token = tokenStr indexOf stack.map(_.toChar).mkString("")
+          val index = tokenStr indexOf stack.map(_.toChar).mkString("")
+          if (index ne -1)
+            token = index
 
           incChar()
         } else if (token eq STRINGLIT) {
@@ -90,21 +98,24 @@ class Scanner
            ':' | '=' | '&' | '|' | '\\'|
            '>' | '<' =>
         if ((token ne STRINGLIT) && (token ne CHARLIT)) {
-          // FIXME: I dont think this actually handles the arrows :(
-          if      ((token eq '<') && (content(pos + 1) eq '-')) { token = LARRS; incChar(); incChar() }
-          else if ((token eq '<') && (content(pos + 1) eq '=')) { token = LARRB; incChar(); incChar() }
-          else if ((token eq '=') && (content(pos + 1) eq '>')) { token = RARRB; incChar(); incChar() }
-          else if ((token eq '-') && (content(pos + 1) eq '>')) { token = RARRS; incChar(); incChar() }
-          else {
-            token = IDENTIFIER
-            push(char)
-            if (stack.exists(_.toChar.isLetter)) { popAll(); push(char) }
+          token = IDENTIFIER
+          val current = char
+          push(char)
+          if (stack.exists(_.toChar.isLetter)) { popAll(); push(char) }
 
-            if (tokenStr indexOf stack.map(_.toChar).mkString("") ne -1)
-              token = tokenStr indexOf stack.map(_.toChar).mkString("")
+          if ({ incChar(); char match {
+            case '>' if current == '-' || current == '=' => true
+            case '-' if current == '<' => true
+            case '=' if current == '=' => true
+            case  _  => false
+          }}) { push(char) } else { decChar() }
 
-            incChar()
-          }
+          val index = tokenStr indexOf stack.map(_.toChar).mkString("")
+          if (index ne -1)
+            token = index
+
+          incChar()
+
         } else {
           push(char)
           incChar()
@@ -120,8 +131,10 @@ class Scanner
           case 'd' | 'D' => base = 10; incChar()
           case _         => base = 10
         }
-        if ((base ne 10) && (char ne '_') && (digit_int() < 0))
+        if ((base != 10) /*&& (char ne '_')*/ && (digit_int() < 0)) {
           Error(er"invalid number literal", path)
+        }
+        decChar()
         getNumber()
       case '1' | '2' | '3' | '4' | '5' |
            '6' | '7' | '8' | '9' =>
@@ -157,12 +170,14 @@ class Scanner
           token = CHARLIT
           incChar()
         }
-      case '.' => // FIXME: decimals dont work. no idea why. dont care much rn
-        incChar()
-        if ('0' <= char && char <= '9') {// decimal handler
+      case '.' =>
+        val next = if (content.length > pos + 1) content(pos + 1) else EOF
+        if ('0' <= next && next <= '9') {// decimal handler
           push('.') // TODO: I think more needs to be done here
+          token = DOUBLELIT
         }
         else token = DOT
+        incChar()
       case ';' => setToken(SEMI     )
       case ',' => setToken(COMMA    )
       case '(' => setToken(LPAREN   )
@@ -174,74 +189,57 @@ class Scanner
       //case '<' => setToken(LSHARP   ) probably need special handling
       //case '>' => setToken(RSHARP   )
       case _ => // TODO: this
-          println(s"ahh ${char}")
+          Error(er"Unsupported character $char\ncurrently only UTF-8 is supported", path)
+          incChar()
     }
   
   def skipComment(): Boolean = {
     def _skipLine(): Unit =
     { incChar()
-      if (char ne CR) && (char ne LF) then _skipLine() }
+      if (char != CR) && (char != LF) then _skipLine() }
 
     def _nest(): Unit =
     { incChar(); _skipComment() }
 
     @tailrec def _skipComment(): Unit =
-      if (char eq '/') {
+      if (char == '/') {
         incChar()
-        if (char eq '*') _nest()
+        if (char == '*') _nest()
         _skipComment()
-      } else if (char eq '*') {
-        while ({ incChar(); char eq '*' }) (/*yuh*/)
-        if (char eq '/') incChar()
+      } else if (char == '*') {
+        while ({ incChar(); char == '*' }) (/*yuh*/)
+        if (char == '/') incChar()
         else _skipComment()
+      } else if (char == EOF) {
+        return
       } else {
         incChar()
         _skipComment()
       }
 
     incChar()
-    if char eq '/' then
+    if (char == '/') {
       _skipLine()
       return true
-    else if char eq '*' then
+    }
+    else if (char == '*') {
       incChar()
       _skipComment()
       return true
-    else
+    }
+    else {
+      println("no line skip")
       return false
+    }
   }
 
   def getNumber(): Unit = {
     if ((token ne STRINGLIT) && (token ne CHARLIT)) {
-      def _get(x: Byte): Byte = x match {
-        case '0' => 0
-        case '1' => 1
-        case '2' if (base > 2) => 2
-        case '3' if (base > 2) => 3
-        case '4' if (base > 2) => 4
-        case '5' if (base > 2) => 5
-        case '6' if (base > 2) => 6
-        case '7' if (base > 2) => 7
-        case '8' if (base > 2) => 8
-        case '9' if (base > 2) => 9
-        case '2' | '3' | '4' | '5' | '6'
-           | '7' | '8' | '9' => -2
-        case 'a' | 'A' if (base eq 16) => 10
-        case 'b' | 'B' if (base eq 16) => 11
-        case 'c' | 'C' if (base eq 16) => 12
-        case 'd' | 'D' if (base eq 16) => 13
-        case 'e' | 'E' if (base eq 16) => 14
-        case 'f' | 'F' if (base eq 16) => 15
-        case 'a' | 'A' | 'b' | 'B' | 'c'
-           | 'C' | 'd' | 'D' | 'e' | 'E'
-           | 'f' | 'F' => -2
-        case '.' => -3
-        case _ => -1
-      }
 
-      token = INTLIT
-      val x = _get(char)
-      if x eq -2 then Error(er"digit $char does not map to base $base", path)
+      if (stack.isEmpty)
+        token = INTLIT
+      val x = digit_int()
+      if x eq -1 then Error(er"digit $char does not map to base $base", path)
       else push(char)
       incChar()
 
@@ -276,15 +274,34 @@ class Scanner
   }
 
   // Util /////////////////////////////////////////////////////////////////////
-  def incChar(): Unit = pos += 1; char = content(pos)
+  def incChar(): Unit = {
+    pos += 1
+    try char = content(pos)
+    catch {
+      case e: IndexOutOfBoundsException => char = EOF
+    }
+  }
+  def decChar(): Unit = {
+    pos -= 1
+    try char = content(pos)
+    catch {
+      case e: IndexOutOfBoundsException => char = EMPTY
+    }
+  }
+
   def setToken(t: Int): Unit = 
-    if ((token ne CHARLIT) && (token ne STRINGLIT)) { token = t; popAll() }
+    if ((token ne CHARLIT) && (token ne STRINGLIT)) { token = t; popAll(); start = pos }
     else if (token eq STRINGLIT) push(char)
     else if (stack.isEmpty) push(char)
     else Error(er"char literals cannot have more than 1 character", path)
     incChar()
-  inline def push(c: Byte): Unit = stack = stack :+ c
+
+  def push(c: Byte): Unit =
+    if (stack.isEmpty) start = pos
+    stack = stack :+ c
+  
   inline def popAll(): Unit = stack = mutable.Seq()
+
   def digit_int(): Byte = base match {
     case 10 => char match {
       case '0' => 0; case '1' => 1; case '2' => 2

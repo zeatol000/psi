@@ -14,6 +14,7 @@ import psi.cc.ast.*
 import psi.cc.ast.Tokens.*
 import scala.collection.immutable.BitSet
 import scala.collection.mutable
+import scala.util.control.Breaks.{break, breakable}
 //import scala.jdk.CollectionConverters.*
 //import java.nio.file.{Files, Paths, Path}
 //import java.io.FileInputStream
@@ -32,35 +33,54 @@ class FileParser
                              and tokenize the Seq[Byte] */
   var ast: AST = null     /* Provides a LOT */
   var pn: PatternN = null /* Tansforms people's weird syntax into normal syntax */
+  var untpd: Untpd = null
 
-  var loopDepth: Byte = 0 // what kind of instane bastard would use 128 nested blocks
-
-  def parse(using Context): Unit =
+  def parse(using Context): Unit = {
     vp"parsing $path"
     ast = ctxt.ast
     sc = new Scanner( File(path).read, path )
+    ast ++ new Untpd( path )
+    untpd = ast.untpd.getOrElse(path, null)
 
     while (sc.token ne EOF) {
       val stack = sc.stack
-      val token = sc.token
+      var token = sc.token
+      val start = sc.start
+
+      given TD = TD(stack, token, start)
+
       sc.fetchToken()
       (sc.token eq IDENTIFIER, token eq IDENTIFIER) match {
         //case (false, true)  if isKeyword(sc.token)  => P(token, sc.stack)
-        case (false, true)  if !isKeyword(sc.token) => P(token, stack)
-        case (false, false)                         => (sc.token, token) match {
-          case (_, EMPTY)                           => void()
-          case (EMPTY, STRINGLIT) | (EMPTY, CHARLIT)  => P(token, stack)
-          case (CHARLIT, CHARLIT) | (STRINGLIT, STRINGLIT) => void()
-          case (_, INTLIT) if sc.token ne INTLIT    => P(token, stack)
-          case (INTLIT, INTLIT)                     => void()
-          case (_, _)                               => P(token, stack)
+        case (false, true)  if !isKeyword(sc.token)                             => Identifier
+        case (false, false) => (sc.token, token) match {
+          case (_, EMPTY)                                                       => void
+          case (EMPTY, STRINGLIT) | (EMPTY, CHARLIT)                            => Token
+          case (CHARLIT, CHARLIT) | (STRINGLIT, STRINGLIT)                      => void
+          case (DOUBLELIT, _)                                                   => void
+          case (_, INTLIT) if (sc.token ne INTLIT)
+            && (!stack.contains('.'))                                           => Token
+          //case (_, INTLIT) if (sc.token ne INTLIT)
+          //  && (stack.contains('.'))                         => token = DOUBLELIT; P(token, stack, start)
+          case (INTLIT, INTLIT)                                                 => void
+          case (_, _)                                                           => Token
         }
-        case (true, false)                          => P(token, stack)
-        case (true, true) if ((stack.length eq sc.stack.length)) => P(token, stack)
-        case (_, _) => void()
+        case (true, false)                                                      => Token
+        case (true, true) if ((stack.length eq sc.stack.length))                => Identifier
+        case (true, true) if !sc.stack.startsWith(stack)                        => Identifier
+        case (_, _)                                                             => void
       }
     }
-
+    println(s"""
+      |Identifiers:
+      |${untpd.dumpId}
+      |
+      |
+      |Tags:
+      |${untpd.dumpAst}
+      |""".stripMargin
+    )
+  }
     // TODO:
     // - sc: be able to tokenize things
     // - this: read the entire file and use the scanner
@@ -68,58 +88,396 @@ class FileParser
     // - ast: push the syntax made by this into an internal untpd class,
     //   write it to a file, and keep track of all untpd files.
   
-  inline def P(t: Int, s: mutable.Seq[Byte]): Unit =
-    println(s"(${t}) ${tokenStr(t)} | ${s.map(_.toChar).mkString("")}")
-  inline def void(): Unit = () 
+
+
+  var loopDepth: Byte = 0 // what kind of instane bastard would use 128 nested blocks
+  var lookingForId: Boolean = false
+  var idType: Char = ' '                    // type of identifier -- [n]ame, [:]type, [=]value
+  var modifierStack = mutable.Seq[Byte]()   // stack of modifiers
+  var inParam: Boolean = false
+  var paramType: Char = ' '                 // type of param -- () [] <>
+
+  def Identifier(using td: TD): Unit = {
+    if (!lookingForId) /* handle APPLY and SELECT -- for now, add to name table and return*/ {
+      untpd addId td.stack
+      return
+    }
+
+    untpd.opBuf match {
+      case v: VALDEF          if !inParam =>
+        untpd addId td.stack
+        idType match {
+          case 'n' => v.name = untpd indexOf td.stack
+          case ':' => v.valType = untpd indexOf td.stack
+          case '=' => v.value = untpd indexOf td.stack
+        }
+
+      case f: FNDEF           if !inParam =>
+        untpd addId td.stack
+        idType match {
+          case 'n' => f.name = untpd indexOf td.stack
+          case ':' => f.valType = untpd indexOf td.stack
+          case '=' => untpd << f
+        }
+
+      case o: OPDEF           if !inParam =>
+        untpd addId td.stack
+        idType match {
+          case 'n' => o.name = untpd indexOf td.stack
+          case ':' => o.valType = untpd indexOf td.stack
+          case '=' => untpd << o
+        }
+
+      case c: CLASSDEF        if !inParam =>
+        untpd addId td.stack
+        idType match {
+          case 'n' => c.name = untpd indexOf td.stack
+          case '=' => untpd << c
+        }
+
+      case o: OBJDEF          if !inParam =>
+        untpd addId td.stack
+        idType match {
+          case 'n' => o.name = untpd indexOf td.stack
+          case '=' => untpd << o
+        }
+
+
+
+      case _ if inParam =>
+        idType match {
+
+          case 'n' =>
+            untpd addId td.stack
+            paramType match {
+
+              case '(' =>
+                val end = untpd.paramBuf.paren.length - 1
+                untpd.paramBuf.paren(end) = (
+                  untpd indexOf td.stack,
+                  untpd.paramBuf.paren(end)._2,
+                  untpd.paramBuf.paren(end)._3
+                )
+
+              case '[' => 
+                val end = untpd.paramBuf.brack.length - 1
+                untpd.paramBuf.brack(end) = (
+                  untpd indexOf td.stack,
+                  untpd.paramBuf.brack(end)._2,
+                  untpd.paramBuf.brack(end)._3
+                )
+
+              case '<' => 
+                val end = untpd.paramBuf.sharp.length - 1
+                untpd.paramBuf.sharp(end) = (
+                  untpd indexOf td.stack,
+                  untpd.paramBuf.sharp(end)._2,
+                  untpd.paramBuf.sharp(end)._3
+                )
+
+            }
+
+          case ':' =>
+            untpd addId td.stack
+            paramType match {
+
+              case '(' =>
+                val end = untpd.paramBuf.paren.length - 1
+                untpd.paramBuf.paren(end) = (
+                  untpd.paramBuf.paren(end)._1,
+                  untpd indexOf td.stack,
+                  untpd.paramBuf.paren(end)._3
+                )
+
+              case '[' => 
+                val end = untpd.paramBuf.brack.length - 1
+                untpd.paramBuf.brack(end) = (
+                  untpd.paramBuf.brack(end)._1,
+                  untpd indexOf td.stack,
+                  untpd.paramBuf.brack(end)._3
+                )
+
+              case '<' => 
+                val end = untpd.paramBuf.sharp.length - 1
+                untpd.paramBuf.sharp(end) = (
+                  untpd.paramBuf.sharp(end)._1,
+                  untpd indexOf td.stack,
+                  untpd.paramBuf.sharp(end)._3
+                )
+            }
+
+
+          case '=' =>
+            if (td.token == IDENTIFIER || td.token == STRINGLIT) {
+              untpd addId td.stack
+              paramType match {
+
+              case '(' =>
+                val end = untpd.paramBuf.paren.length - 1
+                untpd.paramBuf.paren(end) = (
+                  untpd.paramBuf.paren(end)._1,
+                  untpd.paramBuf.paren(end)._2,
+                  untpd indexOf td.stack,
+                )
+
+              case '[' => 
+                val end = untpd.paramBuf.brack.length - 1
+                untpd.paramBuf.brack(end) = (
+                  untpd.paramBuf.brack(end)._1,
+                  untpd.paramBuf.brack(end)._2,
+                  untpd indexOf td.stack,
+                )
+
+              case '<' => 
+                val end = untpd.paramBuf.sharp.length - 1
+                untpd.paramBuf.sharp(end) = (
+                  untpd.paramBuf.sharp(end)._1,
+                  untpd.paramBuf.sharp(end)._2,
+                  untpd indexOf td.stack,
+                )
+
+
+              }
+            }
+        }
+      /*case _ =>
+        idType match {
+
+          case ':' =>
+            untpd addId td.stack
+            
+
+          case '=' =>
+            untpd addId td.stack
+            paramType match {
+
+            }
+
+        }*/
+    }
+    idType = ' '
+    lookingForId = false
+  }
+
+
+
+  def Token(using td: TD)(using Context): Unit = {
+    if (lookingForId) Identifier // force token to be an identifier
+
+    if (isDeclare) td.token match {
+      case VAL  =>
+        untpd operate new VALDEF( modifierStack )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case VAR  =>
+        untpd operate new VALDEF( modifierStack :+ VAR )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case PRO  =>
+        untpd operate new FNDEF( modifierStack :+ PRO, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case SUB  =>
+        untpd operate new FNDEF( modifierStack :+ SUB, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case CO   =>
+        untpd operate new FNDEF( modifierStack :+ CO, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case FN   =>
+        untpd operate new FNDEF( modifierStack, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case TYPE =>
+        untpd operate new VALDEF ( modifierStack :+ TYPE )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+        
+
+
+    } else if (isDefine) td.token match {
+      case OBJ    =>
+        untpd operate new OBJDEF ( modifierStack, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case CLASS  =>
+        untpd operate new CLASSDEF ( modifierStack, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case TRAIT  =>
+        untpd operate new CLASSDEF ( modifierStack :+ TRAIT, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+      case MOD    => // this probably needs it's own MODDEF token, but lets wait until 1.0.0
+        untpd operate new OBJDEF ( modifierStack :+ MOD, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
+        lookingForId = true
+
+
+
+    } else if (isModifier) { modifierStack = modifierStack :+ td.token.toByte }
+
+
+
+    else if (isParen) td.token match {
+      case LPAREN =>
+        inParam = true
+        untpd <> new pBuf
+        paramType = '('
+
+      case LBRACKET =>
+        inParam = true
+        untpd <> new pBuf
+        paramType = '['
+
+      case LSHARP =>
+        inParam = true
+        untpd <> new pBuf
+        paramType = '<'
+
+      case LBRACE =>
+        loopDepth = (loopDepth + 1).toByte
+        paramType = ' '
+
+      case RPAREN | RBRACKET | RSHARP =>
+        inParam = false
+        paramType = ' '
+        untpd.opBuf match {
+          case f: FNDEF    => f.params = f.params :+ untpd.paramBuf
+          case o: OPDEF    => o.params = o.params :+ untpd.paramBuf
+          case a: APPLY    => a.params = a.params :+ untpd.paramBuf
+          case null        => void
+          case _ =>
+            Error(s"tag ${untpd.opBuf} does not take parameters", path)
+        }
+        untpd.paramBuf = null
+
+      case RBRACE =>
+        loopDepth = (loopDepth - 1).toByte
+        paramType = ' '
+        var i = untpd.nestBuf.length - 1
+        breakable { while (i >= 0) {
+          untpd.nestBuf(i) match {
+            case f: FNDEF    if f.open => f.open = false; f.body = f.body :+ untpd.opBuf; break
+            case o: OPDEF    if o.open => o.open = false; o.body = o.body :+ untpd.opBuf; break
+            case c: CLASSDEF if c.open => c.open = false; c.body = c.body :+ untpd.opBuf; break
+            case o: OBJDEF   if o.open => o.open = false; o.body = o.body :+ untpd.opBuf; break
+            case _ => i = i - 1
+          }
+        }}
+        untpd << untpd.opBuf
+
+
+    } else if (isPunctuation) td.token match {
+      case COLON =>
+        lookingForId = true
+        idType = ':'
+      case EQUALS =>
+        lookingForId = true
+        idType = '='
+      case _ =>
+        Error(s"token ${tokenStr(td.token)} isn't implemented yet.. Oopsie", path)
+        // TODO: add the other punctuation
+    }
+
+  }
+
+
+
+
+  inline def P(using td: TD): Unit =
+    val t = td.token
+    val start = td.start
+    val s = td.stack
+    if (t <= 15) println(s"(${t}) ${tokenStr(t)} | (${start}) ${s.map(_.toChar).mkString("")}")
+    else println(s"(${t}) ${tokenStr(t)}  \t$start ")
 
   // errors ///////////////////////////////////////////////////////////////////
   // classifying tokens ///////////////////////////////////////////////////////
-  def isModifier: Boolean = (
-    (sc.token == ABSTRACT)  ||
-    (sc.token == FINAL)     ||
-    (sc.token == PRIVATE)   ||
-    (sc.token == PROTECTED) ||
-    (sc.token == OVERRIDE)  )
-  def isDefine: Boolean = (
-    (sc.token == VAL)   ||
-    (sc.token == VAR)   ||
-    (sc.token == PRO)   ||
-    (sc.token == SUB)   ||
-    (sc.token == CO)    ||
-    (sc.token == FN)    ||
-    (sc.token == OBJ)   ||
-    (sc.token == CLASS) ||
-    (sc.token == TRAIT) ||
-    (sc.token == TYPE)  ||
-    (sc.token == MOD)   )
-  def isDeclare: Boolean = (
-    (sc.token == VAL) ||
-    (sc.token == VAR) ||
-    (sc.token == PRO) ||
-    (sc.token == SUB) ||
-    (sc.token == CO)  ||
-    (sc.token == FN)  ||
-    (sc.token == TYPE))
-  def isExpressionStart: Boolean = (
-    (sc.token == IDENTIFIER)  ||
-    (sc.token == CHARLIT)     ||
-    (sc.token == INTLIT)      ||
-    (sc.token == LONGLIT)     ||
-    (sc.token == FLOATLIT)    ||
-    (sc.token == DOUBLELIT)   ||
-    (sc.token == STRINGLIT)   ||
-    (sc.token == NULL)        ||
-    (sc.token == TRUE)        ||
-    (sc.token == FALSE)       ||
-    (sc.token == THIS)        ||
-    (sc.token == SUPER)       ||
-    (sc.token == NEW)         ||
-    (sc.token == IF)          ||
-    (sc.token == FOR)         ||
-    (sc.token == TRY)         ||
-    (sc.token == WHILE)       ||
-    (sc.token == RETURN)      ||
-    (sc.token == THROW)       ||
-    (sc.token == LPAREN)      ||
-    (sc.token == LBRACE)      )
+  def isPunctuation(using td: TD): Boolean = (
+    (td.token == DOT)      ||
+    (td.token == COMMA)    ||
+    (td.token == SEMI)     ||
+    (td.token == USCORE)   ||
+    (td.token == ASTERISK) ||
+    (td.token == TILDE)    ||
+    //(td.token == NEWLINE)  ||
+    (td.token == EQUALS)   ||
+    (td.token == COLON)    ||
+    //(td.token == DOUBLECOLON) ||
+    (td.token == LARRS)    ||
+    //(td.token == LARRB)    ||
+    (td.token == RARRS)    ||
+    (td.token == RARRB)    )
+  def isParen(using td: TD): Boolean = (
+    (td.token == LPAREN)   ||
+    (td.token == RPAREN)   ||
+    (td.token == LBRACKET) ||
+    (td.token == RBRACKET) ||
+    (td.token == LBRACE)   ||
+    (td.token == RBRACE)   ||
+    (td.token == LSHARP)   ||
+    (td.token == RSHARP)   )
+  def isModifier(using td: TD): Boolean = (
+    (td.token == ABSTRACT)  ||
+    (td.token == FINAL)     ||
+    (td.token == PRIVATE)   ||
+    (td.token == INHERITED) ||
+    (td.token == OVERRIDE)  )
+  def isDefine(using td: TD): Boolean = (
+    (td.token == OBJ)   ||
+    (td.token == CLASS) ||
+    (td.token == TRAIT) ||
+    (td.token == MOD)   )
+  def isDeclare(using td: TD): Boolean = (
+    (td.token == VAL) ||
+    (td.token == VAR) ||
+    (td.token == PRO) ||
+    (td.token == SUB) ||
+    (td.token == CO)  ||
+    (td.token == FN)  ||
+    (td.token == TYPE))
+  def isExpressionStart(using td: TD): Boolean = (
+    (td.token == IDENTIFIER)  ||
+    (td.token == CHARLIT)     ||
+    (td.token == INTLIT)      ||
+    (td.token == LONGLIT)     ||
+    (td.token == FLOATLIT)    ||
+    (td.token == DOUBLELIT)   ||
+    (td.token == STRINGLIT)   ||
+    (td.token == NULL)        ||
+    (td.token == TRUE)        ||
+    (td.token == FALSE)       ||
+    (td.token == THIS)        ||
+    (td.token == SUPER)       ||
+    (td.token == NEW)         ||
+    (td.token == IF)          ||
+    (td.token == FOR)         ||
+    (td.token == TRY)         ||
+    (td.token == WHILE)       ||
+    (td.token == RETURN)      ||
+    (td.token == THROW)       ||
+    (td.token == LPAREN)      ||
+    (td.token == LBRACE)      )
 }

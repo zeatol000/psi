@@ -6,16 +6,9 @@
 \*                                              */
 
 package psi.cc
-package ast
+package utils
 
-import psi.cc.ast.*
-import scala.collection.*
+inline def void: Unit = () // useful for terminating match cases
 
-class AST
-{
-  var untpd = mutable.Map[String, Untpd]()
-  var tpd = mutable.Map[String, Tpd]()
 
-  def ++ (u: Untpd): Unit = untpd += (u.srcpath -> u)
-  def ++ (t: Tpd)  : Unit = tpd   += (t.srcpath -> t)
-}
+

@@ -31,16 +31,18 @@ abstract class Tokens
    *! DO NOT REPLACE TOKENS. All values must be positive          */
 
   /* AST-specific keywords -- you dont have these in normal files except eof ig */
-  inline val IDENTIFIER  = 0;   push( IDENTIFIER,  "!identifier"   ) // Points to the name section of the AST
-  inline val EMPTY       = 1;   push( EMPTY,       "!empty"        ) // Missing token
+  inline val IDENTIFIER  = 0;   push( IDENTIFIER,  "!identifier "  ) // Points to the name section of the AST
+  inline val EMPTY       = 1;   push( EMPTY,       "!empty      "  ) // Missing token / utility
   inline val ERROR       = 2;   push( ERROR,       "!token error"  ) // Error identifier
-  inline val EOF         = 3;   push( EOF,         "!eof"          ) // End of file
+  inline val EOF         = 3;   push( EOF,         "!eof        "  ) // End of file
+  inline val APPLY       = 4;   push( APPLY,       "!apply      "  ) // run a function
+  inline val SELECT      = 5;   push( SELECT,      "!select     "  ) // select member of value
   
   /* literals */
-  inline val CHARLIT     = 10;  push( CHARLIT,     "!char lit"     ) // ' '
-  inline val INTLIT      = 11;  push( INTLIT,      "!int lit"      ) // Int, Short, and Byte
-  inline val LONGLIT     = 12;  push( LONGLIT,     "!long lit"     ) // Long
-  inline val FLOATLIT    = 13;  push( FLOATLIT,    "!float lit"    ) // Float
+  inline val CHARLIT     = 10;  push( CHARLIT,     "!char lit  "   ) // ' '
+  inline val INTLIT      = 11;  push( INTLIT,      "!int lit   "   ) // Int, Short, and Byte
+  inline val LONGLIT     = 12;  push( LONGLIT,     "!long lit  "   ) // Long
+  inline val FLOATLIT    = 13;  push( FLOATLIT,    "!float lit "   ) // Float
   inline val DOUBLELIT   = 14;  push( DOUBLELIT,   "!double lit"   ) // Double
   inline val STRINGLIT   = 15;  push( STRINGLIT,   "!string lit"   ) // " "
   inline val NULL        = 16;  push( NULL,        "null"          )
@@ -59,7 +61,7 @@ abstract class Tokens
   inline val ABSTRACT    = 28;  push( ABSTRACT,    "abstract"      )
   inline val FINAL       = 29;  push( FINAL,       "final"         )
   inline val PRIVATE     = 30;  push( PRIVATE,     "private"       )
-  inline val PROTECTED   = 31;  push( PROTECTED,   "protected"     )
+  inline val INHERITED   = 31;  push( INHERITED,   "inherited"     ) // supposed to be "protected" but i cant get it to stop thinking its trying to say pro
   inline val OVERRIDE    = 32;  push( OVERRIDE,    "override"      )
   inline val EXTENDS     = 33;  push( EXTENDS,     "extends"       )
   inline val AS          = 34;  push( AS,          "as"            )
@@ -97,7 +99,7 @@ abstract class Tokens
   inline val COLON       = 78;  push( COLON,       ":"             )
   //inline val DOUBLECOLON = 79;  push( DOUBLECOLON, "::"            )
   inline val LARRS       = 80;  push( LARRS,       "<-"            )
-  inline val LARRB       = 81;  push( LARRB,       "<="            )
+  //inline val LARRB       = 81;  push( LARRB,       "<="            )
   inline val RARRS       = 82;  push( RARRS,       "->"            )
   inline val RARRB       = 83;  push( RARRB,       "=>"            )
   

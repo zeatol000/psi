@@ -1,7 +1,6 @@
->--verbose
 
 pro main(args: Array[String]): Null = {
-	println("Hello, World!")
+	var x: Int = 5 
 }
 
-val x: Int = 42
+
