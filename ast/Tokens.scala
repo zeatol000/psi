@@ -97,9 +97,9 @@ abstract class Tokens
   inline val NEWLINE     = 76;  push( NEWLINE,     "!newline"      ) // Going to be really useful in figuring out whether something is the end of a statement
   inline val EQUALS      = 77;  push( EQUALS,      "="             )
   inline val COLON       = 78;  push( COLON,       ":"             )
-  //inline val DOUBLECOLON = 79;  push( DOUBLECOLON, "::"            )
+//inline val DOUBLECOLON = 79;  push( DOUBLECOLON, "::"            )
   inline val LARRS       = 80;  push( LARRS,       "<-"            )
-  //inline val LARRB       = 81;  push( LARRB,       "<="            )
+//inline val LARRB       = 81;  push( LARRB,       "<="            )
   inline val RARRS       = 82;  push( RARRS,       "->"            )
   inline val RARRB       = 83;  push( RARRB,       "=>"            )
   

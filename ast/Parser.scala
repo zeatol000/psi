@@ -21,7 +21,7 @@ import scala.util.control.Breaks.{break, breakable}
 
 
 private[ast]
-class FileParser
+class Parser
 (
   val path: String,
 )
@@ -71,6 +71,7 @@ class FileParser
         case (_, _)                                                             => void
       }
     }
+    ast << untpd
     println(s"""
       |Identifiers:
       |${untpd.dumpId}
@@ -84,10 +85,16 @@ class FileParser
     // TODO:
     // - Finish keywords and punctuation handling
     // - Allow for types to have internal types. Eg: Array[ String ]
+    // - Push AnyVal into exact values instead of NameRef, which AnyRef is.
     // - ast: push the syntax made by this into an internal untpd class,
     //   write it to a file, and keep track of all untpd files.
     //
     // the scanner was so good, just for the parser to be a nightname (wilted flower emoji)
+    //
+    // HINT:
+    // to convert hex or binary to integers, take all of the values in the stack
+    // and merge them into a string, then run "Integer.parseInt(a, b)"
+    // such that a is the string and b is the radix
   
 
 
@@ -154,6 +161,13 @@ class FileParser
         
 
       case _                  if  inParam =>
+        td.token match {
+          case RPAREN   if paramType == '(' => inParam = false; paramType = ' '; idType = ' '; return
+          case RBRACKET if paramType == '[' => inParam = false; paramType = ' '; idType = ' '; return
+          case RSHARP   if paramType == '{' => inParam = false; paramType = ' '; idType = ' '; return
+          case _ =>
+        }
+
         idType match {
 
           case 'n' | ' ' | '?' =>
@@ -270,7 +284,7 @@ class FileParser
 
 
   def Token(using td: TD)(using Context): Unit = { 
-    if (lookingForId) Identifier // force token to be an identifier
+    if (lookingForId) { Identifier; return } // force token to be an identifier
 
     if (isDeclare) td.token match {
       case VAL  =>
@@ -307,7 +321,12 @@ class FileParser
         untpd operate new FNDEF( modifierStack, startDepth = loopDepth )
         modifierStack = mutable.Seq()
         idType = 'n'
-        
+       
+
+      case OP   =>
+        untpd operate new OPDEF( modifierStack, startDepth = loopDepth )
+        modifierStack = mutable.Seq()
+        idType = 'n'
 
       case TYPE =>
         untpd operate new VALDEF ( modifierStack :+ TYPE )
@@ -380,6 +399,7 @@ class FileParser
           idType = ' '
         }      
         inParam = true
+        idType = 'n'
         untpd <> new pBuf
         paramType = '<'
 
@@ -427,6 +447,14 @@ class FileParser
           case v: VALDEF => idType = '='
           case s: SELECT => idType = '='
           case _ => void
+        }
+
+      case COMMA if inParam =>
+        idType = 'n'
+        paramType match {
+          case '(' => untpd.paramBuf.paren = untpd.paramBuf.paren :+ (0,0,null)
+          case '[' => untpd.paramBuf.brack = untpd.paramBuf.brack :+ (0,0,null)
+          case '<' => untpd.paramBuf.sharp = untpd.paramBuf.sharp :+ (0,0,null)
         }
 
       case _ =>
@@ -490,6 +518,7 @@ class FileParser
     (td.token == SUB) ||
     (td.token == CO)  ||
     (td.token == FN)  ||
+    (td.token == OP)  ||
     (td.token == TYPE))
   def isExpressionStart(using td: TD): Boolean = (
     (td.token == IDENTIFIER)  ||

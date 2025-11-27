@@ -6,23 +6,21 @@
 \*                                              */
 
 package psi.cc
-package ast
+package typer
 
 import psi.cc.*
 
 private[cc]
-class ParserPhase
+class AnalyzerPhase
 extends
-    Phase
+  Phase
 {
-  def phaseName: String = "Parser"
-  def phaseDesc: String = "Scan and parse sources"
+  def phaseName: String = "Analyzer"
+  def phaseDesc: String = "Assign types to definitions and enforce syntax"
   def run(using Context): Unit =
-    val parsers: Array[Parser] = new Array(ctxt.args.psiFiles.length)
+    val analyzers: Array[Analyzer] = new Array(ctxt.args.psiFiles.length)
 
-    ctxt ++ new AST
-
-    for (i <- 0 until parsers.length)
-      parsers(i) = new Parser(ctxt.args.psiFiles(i))
-      parsers(i).parse
+    for (i <- 0 until analyzers.length)
+      analyzers(i) = new Analyzer(ctxt.args.psiFiles(i))
+      analyzers(i).temp // temp
 }

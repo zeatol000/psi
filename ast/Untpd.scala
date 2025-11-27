@@ -110,6 +110,7 @@ class Untpd
       case o: OPDEF     => s"""OPDEF
     ${o.modifiers.map(tokenStr(_)).mkString(", ")}
     ${identifiers(o.name).map(_.toChar).mkString("")}
+    ${o.paramGet}
     ${identifiers(o.valType).map(_.toChar).mkString("")}
     ${o.body.length}   """
 
@@ -171,111 +172,4 @@ class Untpd
   
 }
 ///////////////////////////////////////////////////////////////////////////////
-class pBuf (            // Name,    Type,   value
-  var paren: mutable.Seq[(NameRef, NameRef, ?)] = mutable.Seq((0, 0, null)),
-  var brack: mutable.Seq[(NameRef, NameRef, ?)] = mutable.Seq((0, 0, null)),
-  var sharp: mutable.Seq[(NameRef, NameRef, ?)] = mutable.Seq((0, 0, null)),
-  )
-
-
-type paramType = mutable.Seq[pBuf]
-type parentType = mutable.Seq[paramType]
-type NameRef = Int
-abstract class untpdToken
-
-class VALDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var valType: NameRef = 0,
-  var value: Byte|NameRef = EMPTY,
-  ) extends untpdToken
-
-
-
-class FNDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var params: paramType = mutable.Seq(),
-  var valType: NameRef = 0,
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken {
-  def paramGet: String = 
-    val p = params.filterNot(_ == null).map { pb => // RAM hates to see me coming 
-      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })" +
-      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]" +
-      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
-    }
-    p mkString "\n"
-}
-
-
-
-class OPDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var params: paramType = mutable.Seq(),
-  var valType: NameRef = 0,
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken {
-  def paramGet: String = 
-    val p = params.map { pb => // RAM hates to see me coming 
-      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })" +
-      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]" +
-      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
-    }
-    p mkString "\n"
-}
-
-
-
-class CLASSDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var parents: parentType = mutable.Seq(),
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken
-
-
-
-class OBJDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var parents: parentType = mutable.Seq(),
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken
-
-
-
-class APPLY (
-  var name: NameRef = 0,
-  var params: paramType = mutable.Seq(),
-  ) extends untpdToken {
-  def paramGet: String = 
-    val p = params.map { pb => // RAM hates to see me coming 
-      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })" +
-      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]" +
-      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
-    }
-    p mkString "\n"
-}
-
-
-
-class SELECT (
-  var obj: NameRef = 0,
-  var member: untpdToken = null,
-  ) extends untpdToken
-
 

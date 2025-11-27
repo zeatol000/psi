@@ -1,10 +1,9 @@
+>--verbose
 
 pro main(): Null = {
-	uhh("hi yalll")
+	foo("Hello, World!")
 }
 
-fn uhh(x: String): Null = {
+fn foo(x: String): Null = {
 	println(x)
 }
-
-
