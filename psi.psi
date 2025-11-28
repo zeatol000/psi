@@ -1,9 +1,14 @@
 >--verbose
 
+
 pro main(): Null = {
-	foo("Hello, World!")
+	foo("Hello, World")
 }
 
 fn foo(x: String): Null = {
-	println(x)
+	if (x == "Hello, World!") {
+		println(x)
+	} else {
+		println("Hello, Psi!!")
+	}
 }

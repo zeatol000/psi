@@ -85,6 +85,8 @@ class Parser
     // TODO:
     // - Finish keywords and punctuation handling
     // - Allow for types to have internal types. Eg: Array[ String ]
+    // - Handle SELECT tags
+    // - Create handling for pApply -- either NameRef, APPLY, or SELECT
     // - Push AnyVal into exact values instead of NameRef, which AnyRef is.
     // - ast: push the syntax made by this into an internal untpd class,
     //   write it to a file, and keep track of all untpd files.
@@ -106,11 +108,17 @@ class Parser
   var paramType: Char = ' '                 // type of param -- () [] <>
   var ApplyStack = mutable.Seq[Byte]()
 
-  def Identifier(using td: TD): Unit = { 
-    if (!lookingForId) /* handle APPLY and SELECT */ {
+  def Identifier(using td: TD)(using Context): Unit = {  
+    if (!lookingForId && idType != 's') /* handle APPLY and SELECT */ {
       ApplyStack = td.stack
       idType = '?'
       untpd << untpd.opBuf
+      return
+    }
+
+    if (td.token == NEW && idType != 'n') {
+      untpd operate new New
+      idType = 'n'
       return
     }
 
@@ -120,7 +128,7 @@ class Parser
         idType match {
           case 'n' => v.name = untpd indexOf td.stack
           case ':' => v.valType = untpd indexOf td.stack
-          case '=' => v.value = untpd indexOf td.stack
+          case '=' => v.value = (td.token.toByte, untpd indexOf td.stack)
         }
 
       case f: FNDEF           if !inParam =>
@@ -157,7 +165,7 @@ class Parser
         untpd addId td.stack
         a.name = untpd indexOf td.stack
 
-      case _                  if !inParam => println(s"null id: ${td.stack.map(_.toChar).mkString("")}")
+      case _                  if !inParam => vp"null id: ${td.stack.map(_.toChar).mkString("")}"
         
 
       case _                  if  inParam =>
@@ -168,100 +176,107 @@ class Parser
           case _ =>
         }
 
-        idType match {
+        untpd.paramBuf match {
+          case c: pCreate =>
+            idType match {
 
-          case 'n' | ' ' | '?' =>
-            untpd addId td.stack
-            paramType match {
-
-              case '(' =>
-                val end = untpd.paramBuf.paren.length - 1
-                untpd.paramBuf.paren(end) = (
-                  untpd indexOf td.stack,
-                  untpd.paramBuf.paren(end)._2,
-                  untpd.paramBuf.paren(end)._3
-                )
-
-              case '[' => 
-                val end = untpd.paramBuf.brack.length - 1
-                untpd.paramBuf.brack(end) = (
-                  untpd indexOf td.stack,
-                  untpd.paramBuf.brack(end)._2,
-                  untpd.paramBuf.brack(end)._3
-                )
-
-              case '<' => 
-                val end = untpd.paramBuf.sharp.length - 1
-                untpd.paramBuf.sharp(end) = (
-                  untpd indexOf td.stack,
-                  untpd.paramBuf.sharp(end)._2,
-                  untpd.paramBuf.sharp(end)._3
-                )
-
-}
-
-          case ':' =>
-            untpd addId td.stack
-            paramType match {
-
-              case '(' =>
-                val end = untpd.paramBuf.paren.length - 1
-                untpd.paramBuf.paren(end) = (
-                  untpd.paramBuf.paren(end)._1,
-                  untpd indexOf td.stack,
-                  untpd.paramBuf.paren(end)._3
-                )
-
-              case '[' => 
-                val end = untpd.paramBuf.brack.length - 1
-                untpd.paramBuf.brack(end) = (
-                  untpd.paramBuf.brack(end)._1,
-                  untpd indexOf td.stack,
-                  untpd.paramBuf.brack(end)._3
-                )
-
-              case '<' => 
-                val end = untpd.paramBuf.sharp.length - 1
-                untpd.paramBuf.sharp(end) = (
-                  untpd.paramBuf.sharp(end)._1,
-                  untpd indexOf td.stack,
-                  untpd.paramBuf.sharp(end)._3
-                )
-            }
-
-
-          case '=' =>
-            if (td.token == IDENTIFIER || td.token == STRINGLIT) {
-              untpd addId td.stack
-              paramType match {
-
-              case '(' =>
-                val end = untpd.paramBuf.paren.length - 1
-                untpd.paramBuf.paren(end) = (
-                  untpd.paramBuf.paren(end)._1,
-                  untpd.paramBuf.paren(end)._2,
-                  untpd indexOf td.stack,
-                )
-
-              case '[' => 
-                val end = untpd.paramBuf.brack.length - 1
-                untpd.paramBuf.brack(end) = (
-                  untpd.paramBuf.brack(end)._1,
-                  untpd.paramBuf.brack(end)._2,
-                  untpd indexOf td.stack,
-                )
-
-              case '<' => 
-                val end = untpd.paramBuf.sharp.length - 1
-                untpd.paramBuf.sharp(end) = (
-                  untpd.paramBuf.sharp(end)._1,
-                  untpd.paramBuf.sharp(end)._2,
-                  untpd indexOf td.stack,
-                )
-
-
+              case 'n' | ' ' | '?' =>
+                untpd addId td.stack
+                paramType match {
+                  case '(' =>
+                    val end = c.paren.length - 1
+                    c.paren(end) = (
+                      untpd indexOf td.stack,
+                      c.paren(end)._2,
+                      c.paren(end)._3
+                    )
+                  case '[' => 
+                    val end = c.brack.length - 1
+                    c.brack(end) = (
+                      untpd indexOf td.stack,
+                      c.brack(end)._2,
+                      c.brack(end)._3
+                    )
+                  case '<' => 
+                    val end = c.sharp.length - 1
+                    c.sharp(end) = (
+                      untpd indexOf td.stack,
+                      c.sharp(end)._2,
+                      c.sharp(end)._3
+                    )
               }
+
+              case ':' =>
+                untpd addId td.stack
+                paramType match {
+                  case '(' =>
+                    val end = c.paren.length - 1
+                    c.paren(end) = (
+                      c.paren(end)._1,
+                      untpd indexOf td.stack,
+                      c.paren(end)._3
+                    )
+                  case '[' => 
+                    val end = c.brack.length - 1
+                    c.brack(end) = (
+                      c.brack(end)._1,
+                      untpd indexOf td.stack,
+                      c.brack(end)._3
+                    )
+                  case '<' => 
+                    val end = c.sharp.length - 1
+                    c.sharp(end) = (
+                      c.sharp(end)._1,
+                      untpd indexOf td.stack,
+                      c.sharp(end)._3
+                    )
+                }
+
+              case '=' =>
+                if (td.token == IDENTIFIER || td.token == STRINGLIT) {
+                  untpd addId td.stack
+                  paramType match {
+                  case '(' =>
+                    val end = c.paren.length - 1
+                    c.paren(end) = (
+                      c.paren(end)._1,
+                      c.paren(end)._2,
+                      untpd indexOf td.stack,
+                    )
+                  case '[' => 
+                    val end = c.brack.length - 1
+                    c.brack(end) = (
+                      c.brack(end)._1,
+                      c.brack(end)._2,
+                      untpd indexOf td.stack,
+                    )
+                  case '<' => 
+                    val end = c.sharp.length - 1
+                    c.sharp(end) = (
+                      c.sharp(end)._1,
+                      c.sharp(end)._2,
+                      untpd indexOf td.stack,
+                    )
+                  }
+                }
             }
+          case a: pApply =>
+            untpd addId td.stack
+            paramType match {
+              case '(' =>
+                val end = a.paren.length - 1
+                // TODO: add complex if statement handling here. Such as ==, !=, return of an APPLY, etc.
+                // We can do this by treating all conditions as a method of ANY, which means we need to
+                // figure out SELECT with APPLY.... For now, just throw a (token, NameRef)
+                a.paren(end) = (td.token.toByte, untpd indexOf td.stack)
+              case '[' =>
+                val end = a.brack.length - 1
+                a.brack(end) = (td.token.toByte, untpd indexOf td.stack)
+              case '<' =>
+                val end = a.sharp.length - 1
+                a.sharp(end) = (td.token.toByte, untpd indexOf td.stack)
+            }
+          case _ => println("FUCK")
         }
       /*case _ =>
         idType match {
@@ -373,10 +388,19 @@ class Parser
           untpd operate new APPLY
           untpd addId ApplyStack
           untpd.opBuf match { case a: APPLY => a.name = untpd indexOf ApplyStack; case _ => }
+          ApplyStack = mutable.Seq()
+        }
+        untpd.opBuf match {
+          case f: FNDEF => untpd <> new pCreate
+          case o: OPDEF => untpd <> new pCreate
+          case a: APPLY => untpd <> new pApply
+          case i: If    => untpd <> new pApply
+          case w: While => untpd <> new pApply
+          case n: New   => untpd <> new pApply
+          case _ => Error(s"tag ${untpd.opBuf} does not take parameters", path)
         }
         idType = 'n'
         inParam = true
-        untpd <> new pBuf
         paramType = '('
 
       case LBRACKET =>
@@ -384,11 +408,19 @@ class Parser
           untpd operate new APPLY
           untpd addId ApplyStack
           untpd.opBuf match { case a: APPLY => a.name = untpd indexOf ApplyStack; case _ => }
-          idType = ' '
-        }      
+          ApplyStack = mutable.Seq()
+        }     
+        untpd.opBuf match {
+          case f: FNDEF => untpd <> new pCreate
+          case o: OPDEF => untpd <> new pCreate
+          case a: APPLY => untpd <> new pApply
+          case i: If    => untpd <> new pApply
+          case w: While => untpd <> new pApply
+          case n: New   => untpd <> new pApply
+          case _ => Error(s"tag ${untpd.opBuf} does not take parameters", path)
+        } 
         inParam = true
         idType = ':'
-        untpd <> new pBuf
         paramType = '['
 
       case LSHARP =>
@@ -396,11 +428,19 @@ class Parser
           untpd operate new APPLY
           untpd addId ApplyStack
           untpd.opBuf match { case a: APPLY => a.name = untpd indexOf ApplyStack; case _ => }
-          idType = ' '
-        }      
+          ApplyStack = mutable.Seq()
+        }
+        untpd.opBuf match {
+          case f: FNDEF => untpd <> new pCreate
+          case o: OPDEF => untpd <> new pCreate
+          case a: APPLY => untpd <> new pApply
+          case i: If    => untpd <> new pApply
+          case w: While => untpd <> new pApply
+          case n: New   => untpd <> new pApply
+          case _ => Error(s"tag ${untpd.opBuf} does not take parameters", path)
+        }
         inParam = true
         idType = 'n'
-        untpd <> new pBuf
         paramType = '<'
 
       case LBRACE =>
@@ -411,10 +451,11 @@ class Parser
         inParam = false
         paramType = ' '
         if (td.token == RBRACKET) idType = ' '
-        untpd.opBuf match {
-          case f: FNDEF    => f.params = f.params :+ untpd.paramBuf
-          case o: OPDEF    => o.params = o.params :+ untpd.paramBuf
-          case a: APPLY    => a.params = a.params :+ untpd.paramBuf
+        if (untpd.paramBuf != null) untpd.opBuf match {
+          case f: FNDEF    => untpd.paramBuf match { case x: pCreate => f.params = f.params :+ x }
+          case o: OPDEF    => untpd.paramBuf match { case x: pCreate => o.params = o.params :+ x }
+          case a: APPLY    => untpd.paramBuf match { case x: pApply  => a.params = a.params :+ x }
+          case i: If       => untpd.paramBuf match { case x: pApply  => i.cond   = i.cond   :+ x }
           case null        => void
           case _ =>
             Error(s"tag ${untpd.opBuf} does not take parameters", path)
@@ -425,21 +466,46 @@ class Parser
         loopDepth = (loopDepth - 1).toByte
         paramType = ' '
         var i = untpd.nestBuf.length - 1
+        if (untpd.opBuf == null) return
+        untpd << untpd.opBuf
         breakable { while (i >= 0) {
           untpd.nestBuf(i) match {
             case f: FNDEF    if f.open => f.open = false; f.body = f.body :+ untpd.opBuf; break
             case o: OPDEF    if o.open => o.open = false; o.body = o.body :+ untpd.opBuf; break
             case c: CLASSDEF if c.open => c.open = false; c.body = c.body :+ untpd.opBuf; break
             case o: OBJDEF   if o.open => o.open = false; o.body = o.body :+ untpd.opBuf; break
+            case i: If       if i.open => i.open = false; i.body = i.body :+ untpd.opBuf; break
             case _ => i = i - 1
           }
         }}
-        untpd << untpd.opBuf
+        untpd.opBuf = null
 
 
     } else if (isPunctuation) td.token match {
-      case COLON =>
-        idType = ':'
+      //case DOT =>
+      //  idType = 's'
+        
+      case COMMA if inParam =>
+        idType = 'n'
+        paramType match {
+          case '(' => untpd.paramBuf match {
+            case c: pCreate => c.paren = c.paren :+ (0,0,null)
+            case a: pApply  => a.paren = a.paren :+ (1,0) }
+          case '[' => untpd.paramBuf match {
+            case c: pCreate => c.brack = c.brack :+ (0,0,null)
+            case a: pApply  => a.brack = a.brack :+ (1,0) }
+          case '<' => untpd.paramBuf match {
+            case c: pCreate => c.sharp = c.sharp :+ (0,0,null)
+            case a: pApply  => a.sharp = a.sharp :+ (1,0) }
+        }
+
+      case COMMA if !inParam => void
+
+      // TODO:
+      case SEMI     => void // i have no clue what to do with semicolons
+      //case USCORE   => void // undefined value
+      //case ASTERISK => void // all values 
+      //case TILDE    => void // idk
 
       case EQUALS =>
         if (inParam) idType = '='
@@ -449,17 +515,40 @@ class Parser
           case _ => void
         }
 
-      case COMMA if inParam =>
-        idType = 'n'
-        paramType match {
-          case '(' => untpd.paramBuf.paren = untpd.paramBuf.paren :+ (0,0,null)
-          case '[' => untpd.paramBuf.brack = untpd.paramBuf.brack :+ (0,0,null)
-          case '<' => untpd.paramBuf.sharp = untpd.paramBuf.sharp :+ (0,0,null)
-        }
+      case COLON =>
+        idType = ':'
+
+      // arrow handling ..
 
       case _ =>
         Error(s"token ${tokenStr(td.token)} isn't implemented yet.. Oopsie", path)
         // TODO: add the other punctuation
+
+    } else if (isKeyword(td.token)) td.token match {
+      case IF      => untpd operate new If
+      case ELSE    =>
+        var i = untpd.nestBuf.length - 1
+        breakable { while (i >= 0) {
+          untpd.nestBuf(i) match {
+            case i: If if !i.open => i.ifBuf = i.body; i.open = true; i.body = mutable.Seq(); untpd.opBuf = null; break
+            case _ => i = i - 1
+          }
+        }}
+      //case FOR     => // FOR is stupid
+      case WHILE   => untpd operate new While
+      case NEW     => untpd operate new New
+      //case THIS    =>
+      //case SUPER   =>
+      //case MATCH   => untpd operate new Match
+      //case CASE    => untpd operate new Case
+      //case TRY     => untpd operate new Try
+      //case CATCH   => untpd.opBuf match {case t: Try => t.catchOpen = true}
+      //case FINALLY =>
+      case RETURN  => untpd operate new Return
+      //case THROW   => untpd operate new Throw
+      case IMPORT  => untpd operate new Import
+      case PACKAGE => untpd operate new PACKAGEDEF
+      
     }
 
   }
@@ -474,7 +563,6 @@ class Parser
     if (t <= 15) println(s"(${t}) ${tokenStr(t)} | (${start}) ${s.map(_.toChar).mkString("")}")
     else println(s"(${t}) ${tokenStr(t)}  \t$start ")
 
-  // errors ///////////////////////////////////////////////////////////////////
   // classifying tokens ///////////////////////////////////////////////////////
   def isPunctuation(using td: TD): Boolean = (
     (td.token == DOT)      ||

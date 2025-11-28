@@ -176,7 +176,7 @@ class Scanner
           push('.') // TODO: I think more needs to be done here
           token = DOUBLELIT
         }
-        else token = DOT
+        else {token = DOT; popAll()}
         incChar()
       case ';' => setToken(SEMI     )
       case ',' => setToken(COMMA    )

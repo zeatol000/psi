@@ -10,6 +10,7 @@ package ast
 
 import psi.cc.ast.*
 import psi.cc.ast.Tokens.*
+import psi.cc.utils.*
 import scala.collection.*
 import scala.util.control.Breaks.{break, breakable}
 
@@ -129,7 +130,13 @@ class Untpd
     ${a.paramGet}      """
 
       case s: SELECT    => s"""SELECT
-    ${identifiers(s.obj).map(_.toChar).mkString("")} """
+    ${identifiers(s.obj).map(_.toChar).mkString("")}
+    ${s.member}"""
+
+      case i: If        => s"""IF
+    ${i.getCond}
+    ${i.ifBuf.length}
+    ${i.body.length}  """
 
       case null         => s"""NULLREF ERROR"""
     }}).mkString("\n")
@@ -139,15 +146,21 @@ class Untpd
   var paramBuf: pBuf    = null
 
   // opBuf
-  infix def ! (x: untpdToken): Unit = 
+  infix def ! (x: untpdToken): Unit =
     this.<<(x)
     var i = nestBuf.length - 1
     breakable { while (i >= 0) {
       nestBuf(i) match {
-        case f: FNDEF    if f.open => f.body = f.body :+ opBuf; break
-        case o: OPDEF    if o.open => o.body = o.body :+ opBuf; break
-        case c: CLASSDEF if c.open => c.body = c.body :+ opBuf; break
-        case o: OBJDEF   if o.open => o.body = o.body :+ opBuf; break
+        case f: FNDEF    if f.open && x != f => f.body = f.body :+ opBuf; break
+        case o: OPDEF    if o.open && x != o => o.body = o.body :+ opBuf; break
+        case c: CLASSDEF if c.open && x != c => c.body = c.body :+ opBuf; break
+        case o: OBJDEF   if o.open && x != o => o.body = o.body :+ opBuf; break
+        case s: SELECT   if s.member == (EMPTY, 0) => s.member = opBuf match {
+          case a: APPLY => (Tokens.APPLY, a)
+          //case EDITVAL => (0, this.indexOf())
+          case _ => (ERROR, null)
+        }; break
+        case i: If       if i.open && x != i => i.body = i.body :+ opBuf; break
         case _ => i = i - 1
       }
     }}
@@ -160,13 +173,12 @@ class Untpd
   infix def << (x: untpdToken): Unit =
     nestBuf = nestBuf :+ opBuf
     nestBuf = nestBuf.distinct
-    opBuf = null
 
   def canParam : Boolean = opBuf match {
     case f: FNDEF => true
     case o: OPDEF => true
-    case c: CLASSDEF => true
     case a: APPLY => true
+    case i: If => true
     case _ => false
   }
   

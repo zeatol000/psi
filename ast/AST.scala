@@ -36,142 +36,36 @@ class AST
       case o: OBJDEF   => buf = buf :+ o
       case a: APPLY    => a.params = mutable.Seq(mergeParams(a.params.toSeq *)); buf = buf :+ a
       case s: SELECT   => buf = buf :+ s
+      case i: If       =>
+        if (i.ifBuf == mutable.Seq()) { i.ifBuf = i.body; i.body = mutable.Seq() }; buf = buf :+ i
       case null        => void
     }}
     uTags += (u.srcpath -> buf)
 
 
 
-  private def mergeParams(xs: pBuf*): pBuf = {
+  private def mergeParams(xs: pCreate*): pCreate = {
     //var paren, brack, sharp = mutable.Seq[(NameRef, NameRef, ?)] = mutable.Seq((0,0,null))
     val paren = mutable.Seq[(NameRef, NameRef, ?)]( xs.flatMap { p => p.paren} *).filterNot(_ == (0,0,null))
     val brack = mutable.Seq[(NameRef, NameRef, ?)]( xs.flatMap { p => p.brack} *).filterNot(_ == (0,0,null))
     val sharp = mutable.Seq[(NameRef, NameRef, ?)]( xs.flatMap { p => p.sharp} *).filterNot(_ == (0,0,null))
 
-    new pBuf (
+    new pCreate (
       if paren.length >= 1 then paren else mutable.Seq((0,0,null)),
       if brack.length >= 1 then brack else mutable.Seq((0,0,null)),
       if sharp.length >= 1 then sharp else mutable.Seq((0,0,null)),
       )
   }
+  private def mergeParams(xs: pApply*): pApply = {
+    val p = mutable.Seq[(Byte, ?)]( xs.flatMap { p => p.paren} *).filterNot(_ == (1,0))
+    val b = mutable.Seq[(Byte, ?)]( xs.flatMap { p => p.brack} *).filterNot(_ == (1,0))
+    val s = mutable.Seq[(Byte, ?)]( xs.flatMap { p => p.sharp} *).filterNot(_ == (1,0))
+    
+    new pApply (
+      if p.length >= 1 then p else mutable.Seq((1,0)),
+      if b.length >= 1 then b else mutable.Seq((1,0)),
+      if s.length >= 1 then s else mutable.Seq((1,0)),
+      )
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-class pBuf (            // Name,    Type,   value
-  var paren: mutable.Seq[(NameRef, NameRef, ?)] = mutable.Seq((0, 0, null)),
-  var brack: mutable.Seq[(NameRef, NameRef, ?)] = mutable.Seq((0, 0, null)),
-  var sharp: mutable.Seq[(NameRef, NameRef, ?)] = mutable.Seq((0, 0, null)),
-  )
-
-type paramType = mutable.Seq[pBuf]
-type parentType = mutable.Seq[paramType]
-type NameRef = Int
-abstract class untpdToken
-
-class VALDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var valType: NameRef = 0,
-  var value: Byte|NameRef = EMPTY,
-  ) extends untpdToken
-
-
-
-class FNDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var params: paramType = mutable.Seq(),
-  var valType: NameRef = 0,
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken {
-  def paramGet: String = 
-    val p = params.filterNot(_ == null).map { pb => // RAM hates to see me coming 
-      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })   " +
-      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]   " +
-      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
-    }
-    p mkString "\n"
-}
-
-
-
-class OPDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var params: paramType = mutable.Seq(),
-  var valType: NameRef = 0,
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken {
-  def paramGet: String = 
-    val p = params.map { pb => // RAM hates to see me coming 
-      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })   " +
-      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]   " +
-      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
-    }
-    p mkString "\n"
-}
-
-
-
-class CLASSDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var parents: parentType = mutable.Seq(),
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken
-
-
-
-class OBJDEF (
-  var modifiers: mutable.Seq[Byte] = mutable.Seq(),
-  var name: NameRef = 0,
-  var parents: parentType = mutable.Seq(),
-  var body: mutable.Seq[untpdToken] = mutable.Seq(),
-
-  var open: Boolean = true,
-  val startDepth: Byte,
-  ) extends untpdToken
-
-
-
-class APPLY (
-  var name: NameRef = 0,
-  var params: paramType = mutable.Seq(),
-  ) extends untpdToken {
-  def paramGet: String = 
-    val p = params.map { pb => // RAM hates to see me coming 
-      s"(${if (pb.paren(0) == (0,0,null)) "" else pb.paren.mkString(", ") })   " +
-      s"[${if (pb.brack(0) == (0,0,null)) "" else pb.brack.mkString(", ") }]   " +
-      s"<${if (pb.sharp(0) == (0,0,null)) "" else pb.brack.mkString(", ") }>"
-    }
-    p mkString "\n"
-}
-
-
-
-class SELECT (
-  var obj: NameRef = 0,
-  var member: untpdToken = null,
-  ) extends untpdToken
-
 
