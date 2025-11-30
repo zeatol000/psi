@@ -1,124 +1,115 @@
 /*     ____  _____ ____                         *\
- *    / __ \/ ___//  _/                         *
- *   / /_/ /\__ \ / /       Psi-lang 2025       *
- *  / ____/___/ // /                            *
- * /_/    /____/___/                            *
+*    / __ \/ ___//  _/                         *
+*   / /_/ /\__ \ / /       Psi-lang 2025       *
+*  / ____/___/ // /                            *
+* /_/    /____/___/                            *
 \*                                              */
 
 package psi.cc
 package ast
 
-/**
- * This file represents the all of the keywords of Psi and pushes them into a buffer
- *
- */
-
+import ast.Token
+import ast.TokenSet
 import scala.collection.immutable.BitSet
 
+object Tokens extends Tokens
 abstract class Tokens
-{ 
-  def maxToken: Int
+{
+  def tokenRange(lo: Int, hi: Int): TokenSet = BitSet(lo to hi *)
+  def tokenStr = new Array[String](maxToken + 1)
+  def push(tk: Int, str: String): Unit = tokenStr(tk) = str
 
-  def tokenRange(l: Int, h: Int): BitSet = BitSet(l to h *)
-
-  val tokenStr = new Array[String](maxToken + 1)
-  def push(token: Byte, str: String): Unit = tokenStr(token) = str
-
-  val keywords: BitSet
+  def maxToken: Int = MOD                                         // NOTE: This is the highest token and will change
+  def minToken: Int = EMPTY
+  val keywords: TokenSet = BitSet(TRUE to MOD *)                  // NOTE: this is dynamically updated
   def isKeyword(x: Int): Boolean = keywords.contains(x)
 
-  /** strings that begin with ! mean that isn't the literal keyword
-   *! DO NOT REPLACE TOKENS. All values must be positive          */
+  // AST utility
+  inline val EMPTY        = 0;  push( EMPTY,      "!empty"      ) // Missing token, used in lookahead
+  inline val EOF          = 1;  push( EOF,        "!eof"        ) // End of file
+  inline val ERROR        = 2;  push( ERROR,      "!error"      ) // erroneous token
 
-  /* AST-specific keywords -- you dont have these in normal files except eof ig */
-  inline val IDENTIFIER  = 0;   push( IDENTIFIER,  "!identifier "  ) // Points to the name section of the AST
-  inline val EMPTY       = 1;   push( EMPTY,       "!empty      "  ) // Missing token / utility
-  inline val ERROR       = 2;   push( ERROR,       "!token error"  ) // Error identifier
-  inline val EOF         = 3;   push( EOF,         "!eof        "  ) // End of file
-  inline val APPLY       = 4;   push( APPLY,       "!apply      "  ) // run a function
-  inline val SELECT      = 5;   push( SELECT,      "!select     "  ) // select member of value
+  // AST identifiers for token classes (Definitions aren't here)
+  inline val APPLY        = 3;  push( APPLY,      "!apply"      ) // Apply a function
+  inline val SELECT       = 4;  push( SELECT,     "!select"     ) // Select a value of a parent
+  inline val EDITVAL      = 5;  push( EDITVAL,    "!editval"    ) // Edit a variable
+
+  // Literals
+  inline val CHARLIT      = 6;  push( CHARLIT,    "!char lit"   ) // ' '
+  inline val INTLIT       = 7;  push( INTLIT,     "!int lit"    ) // 123
+  inline val LONGLIT      = 8;  push( LONGLIT,    "!long lit"   ) // 123L or gt Int.max
+  inline val DOUBLELIT    = 9;  push( DOUBLELIT,  "!double lit" ) // 123.456
+  inline val FLOATLIT     = 10; push( FLOATLIT,   "!float lit"  ) // 123.456F
+  inline val STRINGLIT    = 11; push( STRINGLIT,  "!string lit" ) // " "        AnyRef, so needs to be accessed from name table
+
+  // Identifiers
+  inline val IDENTIFIER   = 12; push( IDENTIFIER, "!identifier" ) // NameRef(x)
+
+  // Symbols
+  inline val DOT          = 13; push( DOT,        "."           ) // package accessor
+  inline val COMMA        = 14; push( COMMA,      ","           ) // separate args
+  inline val SEMI         = 15; push( SEMI,       ";"           ) // statement end (optional)
+  inline val USCORE       = 16; push( USCORE,     "_"           ) // undefined value
+  inline val TILDE        = 17; push( TILDE,      "~"           ) // all values
+  inline val ASTERISK     = 18; push( ASTERISK,   "*"           ) // op pointer
+  inline val AMPERSAND    = 19; push( AMPERSAND,  "&"           ) // op reference
+  inline val EQUALS       = 20; push( EQUALS,     "="           ) // set a value to another
+  inline val COLON        = 21; push( COLON,      ":"           ) // set a value's type to something
+  inline val COLONS       = 22; push( COLONS,     "::"          ) // explicit module accessor
+  inline val LARROW       = 23; push( LARROW,     "<-"          ) // i forgot lol
+  inline val RARROW       = 24; push( RARROW,     "=>"          ) // lambda creation
   
-  /* literals */
-  inline val CHARLIT     = 10;  push( CHARLIT,     "!char lit  "   ) // ' '
-  inline val INTLIT      = 11;  push( INTLIT,      "!int lit   "   ) // Int, Short, and Byte
-  inline val LONGLIT     = 12;  push( LONGLIT,     "!long lit  "   ) // Long
-  inline val FLOATLIT    = 13;  push( FLOATLIT,    "!float lit "   ) // Float
-  inline val DOUBLELIT   = 14;  push( DOUBLELIT,   "!double lit"   ) // Double
-  inline val STRINGLIT   = 15;  push( STRINGLIT,   "!string lit"   ) // " "
-  inline val NULL        = 16;  push( NULL,        "null"          )
-  inline val TRUE        = 17;  push( TRUE,        "true"          )
-  inline val FALSE       = 18;  push( FALSE,       "false"         )
-  
-  /* main keywords */
-  inline val IF          = 20;  push( IF,          "if"            )
-  inline val ELSE        = 21;  push( ELSE,        "else"          )
-  inline val FOR         = 22;  push( FOR,         "for"           )
-  inline val WHILE       = 23;  push( WHILE,       "while"         )
-  inline val NEW         = 24;  push( NEW,         "new"           )
-  inline val THIS        = 25;  push( THIS,        "this"          )
-  inline val SUPER       = 26;  push( SUPER,       "super"         )
-  inline val MATCH       = 27;  push( MATCH,       "match"         )
-  inline val CASE        = 28;  push( CASE,        "case"          )
-  inline val ABSTRACT    = 29;  push( ABSTRACT,    "abstract"      )
-  inline val FINAL       = 30;  push( FINAL,       "final"         )
-  inline val PRIVATE     = 31;  push( PRIVATE,     "private"       )
-  inline val INHERITED   = 32;  push( INHERITED,   "inherited"     ) // supposed to be "protected" but i cant get it to stop thinking its trying to say pro
-  inline val OVERRIDE    = 33;  push( OVERRIDE,    "override"      )
-  inline val EXTENDS     = 34;  push( EXTENDS,     "extends"       )
-  inline val AS          = 35;  push( AS,          "as"            )
-  inline val SEALED      = 36;  push( SEALED,      "sealed"        )
-  inline val TRY         = 37;  push( TRY,         "try"           )
-  inline val CATCH       = 38;  push( CATCH,       "catch"         )
-  inline val FINALLY     = 39;  push( FINALLY,     "finally"       )
-  inline val RETURN      = 40;  push( RETURN,      "ret"           )
-  inline val THROW       = 41;  push( THROW,       "throw"         )
-  inline val IMPORT      = 42;  push( IMPORT,      "import"        )
+  // Bracing
+  inline val LPAREN       = 30; push( LPAREN,     "("           ) // Values
+  inline val RPAREN       = 34; push( RPAREN,     ")"           )
+  inline val LBRACKET     = 31; push( LBRACKET,   "["           ) // Types
+  inline val RBRACKET     = 35; push( RBRACKET,   "]"           )
+  inline val LSHARP       = 32; push( LSHARP,     "<"           ) // op-only parameters
+  inline val RSHARP       = 36; push( RSHARP,     ">"           )
+  inline val LBRACE       = 33; push( LBRACE,     "{"           ) // block
+  inline val RBRACE       = 37; push( RBRACE,     "}"           )
 
-  /* data types */
-  inline val VAL         = 50;  push( VAL,         "val"           )
-  inline val VAR         = 51;  push( VAR,         "var"           )
-  inline val PRO         = 52;  push( PRO,         "pro"           )
-  inline val SUB         = 53;  push( SUB,         "sub"           )
-  inline val CO          = 54;  push( CO,          "co"            )
-  inline val FN          = 55;  push( FN,          "fn"            )
-  inline val OP          = 56;  push( OP,          "op"            )
-  inline val PACKAGE     = 57;  push( PACKAGE,     "package"       )
-  inline val OBJ         = 58;  push( OBJ,         "obj"           )
-  inline val CLASS       = 59;  push( CLASS,       "class"         )
-  inline val TRAIT       = 60;  push( TRAIT,       "trait"         )
-  inline val TYPE        = 61;  push( TYPE,        "type"          )
-  inline val MOD         = 62;  push( MOD,         "mod"           )
+  // Keywords
+  inline val TRUE         = 50; push( TRUE,       "true"        ) //
+  inline val FALSE        = 51; push( FALSE,      "false"       ) //
+  inline val NULL         = 52; push( NULL,       "null"        ) //
+  inline val IF           = 53; push( IF,         "if"          ) //
+  inline val ELSE         = 54; push( ELSE,       "else"        ) //
+  inline val WHILE        = 55; push( WHILE,      "while"       ) //
+  inline val NEW          = 56; push( NEW,        "new"         ) //
+  inline val THIS         = 57; push( THIS,       "this"        ) //
+  inline val SUPER        = 58; push( SUPER,      "super"       ) //
+  inline val MATCH        = 59; push( MATCH,      "match"       ) //
+  inline val CASE         = 60; push( CASE,       "case"        ) //
+  inline val EXTENDS      = 61; push( EXTENDS,    "extends"     ) //
+  inline val TRY          = 62; push( TRY,        "try"         ) //
+  inline val CATCH        = 63; push( CATCH,      "catch"       ) //
+  inline val FINALLY      = 64; push( FINALLY,    "finally"     ) //
+  inline val RETURN       = 65; push( RETURN,     "return"      ) //
+  inline val THROW        = 66; push( THROW,      "throw"       ) //
+  inline val IMPORT       = 67; push( IMPORT,     "import"      ) //
 
-  /* punctuation */
-  inline val DOT         = 70;  push( DOT,         "."             )
-  inline val COMMA       = 71;  push( COMMA,       ","             )
-  inline val SEMI        = 72;  push( SEMI,        ";"             )
-  inline val USCORE      = 73;  push( USCORE,      "_"             )
-  inline val ASTERISK    = 74;  push( ASTERISK,    "*"             )
-  inline val TILDE       = 75;  push( TILDE,       "~"             )
-  inline val NEWLINE     = 76;  push( NEWLINE,     "!newline"      ) // Going to be really useful in figuring out whether something is the end of a statement
-  inline val EQUALS      = 77;  push( EQUALS,      "="             )
-  inline val COLON       = 78;  push( COLON,       ":"             )
-//inline val DOUBLECOLON = 79;  push( DOUBLECOLON, "::"            )
-  inline val LARRS       = 80;  push( LARRS,       "<-"            )
-//inline val LARRB       = 81;  push( LARRB,       "<="            )
-  inline val RARRS       = 82;  push( RARRS,       "->"            )
-  inline val RARRB       = 83;  push( RARRB,       "=>"            )
-  
-  /* bracing */
-  inline val LPAREN      = 90;  push( LPAREN,      "("             )
-  inline val RPAREN      = 91;  push( RPAREN,      ")"             )
-  inline val LBRACKET    = 92;  push( LBRACKET,    "["             )
-  inline val RBRACKET    = 93;  push( RBRACKET,    "]"             )
-  inline val LBRACE      = 94;  push( LBRACE,      "{"             )
-  inline val RBRACE      = 95;  push( RBRACE,      "}"             )
-  inline val LSHARP      = 96;  push( LSHARP,      "<"             ) // these 2 are going to be hell because we need to be able to tell
-  inline val RSHARP      = 97;  push( RSHARP,      ">"             ) // the difference between x.<(y) and x<y> -- one is a method, the other is a parameter
-}
+  // Modifiers
+  inline val ABSTRACT     = 68; push( ABSTRACT,   "abstract"    ) //
+  inline val FINAL        = 69; push( FINAL,      "final"       ) //
+  inline val PRIVATE      = 70; push( PRIVATE,    "private"     ) //
+  inline val INHERITED    = 71; push( INHERITED,  "inherited"   ) // protected in other languages
+  inline val OVERRIDE     = 72; push( OVERRIDE,   "override"    ) //
+  inline val SEALED       = 73; push( SEALED,     "sealed"      ) //
 
-object Tokens extends Tokens
-{
-  inline val minToken = IDENTIFIER // Always 0
-  def maxToken: Int = RSHARP // WIll change over versions
-  val keywords: BitSet = BitSet(IF to MOD *)
+  // Data types
+  inline val VAL          = 90; push( VAL,        "val"         ) // immutable value    -- VALDEF
+  inline val VAR          = 91; push( VAR,        "var"         ) // mutable variable   -- part of VALDEF
+  inline val LET          = 92; push( LET,        "let"         ) // QuBits             -- LETDEF
+  inline val PRO          = 93; push( PRO,        "pro"         ) // Program entrypoint -- part of FNDEF
+  inline val SUB          = 94; push( SUB,        "sub"         ) // Subroutine (ran with new) -- part of FNDEF
+  inline val CO           = 95; push( CO,         "co"          ) // Coroutine          -- part of FNDEF
+  inline val FN           = 96; push( FN,         "fn"          ) // Function           -- FNDEF
+  inline val OP           = 97; push( OP,         "op"          ) // Operation          -- OPDEF
+  inline val PACKAGE      = 98; push( PACKAGE,    "package"     ) // Package declare    -- PACKAGEDEF
+  inline val OBJ          = 99; push( OBJ,        "obj"         ) // Object declare     -- OBJDEF
+  inline val CLASS        = 100; push( CLASS,      "class"      ) // Class declare      -- CLASSDEF
+  inline val TRAIT        = 101; push( TRAIT,     "trait"       ) // Trait declare      -- part of CLASSDEF
+  inline val TYPE         = 102; push( TYPE,      "type"        ) // Type declare       -- might be TYPEDEF
+  inline val MOD          = 103; push( MOD,       "mod"         ) // Module declare     -- MODDEF
 }

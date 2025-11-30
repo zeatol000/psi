@@ -1,11 +1,7 @@
 " Psi vim/neovim syntax highlighting
 
 
-
-
 syntax clear
-
-
 
 " Declares and primitive types
 syn keyword declares val var pro sub co fn op package obj class trait type mod
@@ -13,7 +9,7 @@ syn keyword types Byte Short Int Long Float Double Char String Bit Null
 syn keyword conditional if else match case
 syn keyword repeat for while 
 syn keyword exception try catch finally throw
-syn keyword modifier abstract final private inherited override extends as sealed
+syn keyword modifier abstract final private inherited override extends sealed
 syn keyword classes new this super
 syn keyword misc ret import
 highlight link declares Statement
@@ -58,8 +54,9 @@ syn match comma		","
 syn match semicolon	";"
 syn match uScore		"_"
 syn match tilde		"\~"
-syn match equals		"="
 syn match colon		":"
+syn match paren /[(){}\[\]]/
+syn match pink /[=+-<>]/
 syn match optLine "^>.*"
 highlight link dot			Operator
 highlight link comma			Operator
@@ -67,9 +64,10 @@ highlight link semicolon	Operator
 highlight link uScore		Operator
 highlight link tilde			Operator
 highlight link optLine		Operator
-highlight link equals	Macro
-highlight link colon		Macro
-highlight link asterisk	Macro
+highlight link paren			Comment
+highlight link pink			Macro
+highlight link colon			Macro
+highlight link asterisk		Macro
 
 
 " Comments
