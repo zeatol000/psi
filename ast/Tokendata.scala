@@ -13,6 +13,11 @@ import Tokens.*
 import utils.*
 import scala.collection.immutable.BitSet
 
+/**
+ * TokenData trait and utility file
+ */
+
+
 type Token = Int
 type TokenSet = BitSet
 type Offset = Int
@@ -25,17 +30,22 @@ trait TokenData {
   var lineOffset: Offset = -1
   var name: Name = null
   var strval: String = null
-  def cp(td: TokenData): Unit = {
+  var base: Int = 0
+  def copyFrom(td: TokenData): Unit = {
     this.token      = td.token
     this.offset     = td.offset
     this.lastOffset = td.lastOffset
     this.lineOffset = td.lineOffset
     this.name       = td.name
     this.strval     = td.strval
+    this.base       = td.base
   }
-  def isStatEnd = token == SEMI
-  def isIdent   = token == IDENTIFIER
+  def isStatEnd        = token == SEMI
+  def isIdent          = token == IDENTIFIER
   def isIdent(n: Name) = token == IDENTIFIER && name == n
-  def isBStart  = token == LBRACE
-  def isBEnd    = token == RBRACE
+  def isNestStart      = token == LBRACE
+  def isNestEnd        = token == RBRACE
+  def isAfterLF        = lineOffset >= 0
+  def isColon          = token == COLON || token == COLONS
+  //def isOperator = token == IDENTIFIER &&
 }

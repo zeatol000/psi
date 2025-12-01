@@ -44,14 +44,15 @@ abstract class Tokens
 
   // Identifiers
   inline val IDENTIFIER   = 12; push( IDENTIFIER, "!identifier" ) // NameRef(x)
+  inline val INTERPOLATION= 13; push( INTERPOLATION, "!str int" )
 
   // Symbols
-  inline val DOT          = 13; push( DOT,        "."           ) // package accessor
-  inline val COMMA        = 14; push( COMMA,      ","           ) // separate args
-  inline val SEMI         = 15; push( SEMI,       ";"           ) // statement end (optional)
-  inline val USCORE       = 16; push( USCORE,     "_"           ) // undefined value
-  inline val TILDE        = 17; push( TILDE,      "~"           ) // all values
-  inline val ASTERISK     = 18; push( ASTERISK,   "*"           ) // op pointer
+  inline val DOT          = 14; push( DOT,        "."           ) // package accessor
+  inline val COMMA        = 15; push( COMMA,      ","           ) // separate args
+  inline val SEMI         = 16; push( SEMI,       ";"           ) // statement end (optional)
+  inline val USCORE       = 17; push( USCORE,     "_"           ) // undefined value
+  inline val TILDE        = 18; push( TILDE,      "~"           ) // all values
+  inline val ASTERISK     = 19; push( ASTERISK,   "*"           ) // op pointer
   inline val AMPERSAND    = 19; push( AMPERSAND,  "&"           ) // op reference
   inline val EQUALS       = 20; push( EQUALS,     "="           ) // set a value to another
   inline val COLON        = 21; push( COLON,      ":"           ) // set a value's type to something

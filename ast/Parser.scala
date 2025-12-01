@@ -9,9 +9,19 @@ package psi.cc
 package ast
 
 import psi.cc.*
+import utils.*
 
 private[ast]
-class Parser(path: String)(using Context)
+class Parser(Path: String)(using Context)
 {
-  def parse: Unit = ()
+  val ast: AST    = ctxt.ast
+  val Content: Seq[Char] = File(Path).read
+  val sc: Scanner = new Scanner( Content, Path )
+
+  def parse: Unit = {
+
+    if Content.isEmpty then Error(er"Content returned null", Path)
+
+    Content.foreach(print)
+  }
 }

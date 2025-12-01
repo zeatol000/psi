@@ -35,21 +35,24 @@ case class File(
   def createF: Unit = Files.createFile     (Paths.get(path))
 
   
-  def write(chars: Seq[Byte]): Unit =
+  def write(chars: Seq[Char]): Unit =
     Using.resource(new DataOutputStream(new FileOutputStream(path))) { dataOStream =>
       chars.foreach { c =>
-        dataOStream.writeByte(c)
+        if (utils.sysChar == 8) dataOStream.writeByte(c.toByte)
+        else dataOStream.writeChar(c)
       }
     }
 
 
-  def read: Seq[Byte] =
+  def read: Seq[Char] =
     Using.resource(new DataInputStream(new FileInputStream(path))) { DataIStream =>
-      val buffer = ListBuffer[Byte]()
+      val buffer = ListBuffer[Char]()
       var reading = true
       while (reading) try {
-        val c = DataIStream.readByte()
-        buffer.addOne(c.toByte)
+        val c = (if utils.sysChar == 8 then // Support windows appearantly
+          DataIStream.readByte().toChar
+          else DataIStream.readChar() ) 
+        buffer.addOne(c)
       } catch {
         case eof: EOFException => reading = false
         case e: Exception =>

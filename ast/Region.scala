@@ -24,10 +24,11 @@ import scala.annotation.tailrec
  *  This probably needs improvement
  */
 
-case class inString(outer: Region) extends Region(RBRACE)
-case class inParens(prefix: Token, outer: Region) extends Region(prefix + 1)
-case class inBraces(outer: Region) extends Region(RBRACE)
-//case class inCase(outer: Region) extends Region(CASE)
+case class InString(outer: Region) extends Region(RBRACE)
+case class InParens(prefix: Token, outer: Region) extends Region(prefix + 1)
+case class InBraces(outer: Region) extends Region(RBRACE)
+//case class InCase(outer: Region) extends Region(CASE)
+case class InTopLevel(outer: Region) extends Region(EOF)
 
 abstract class Region(val closedBy: Token)
 {
@@ -52,11 +53,11 @@ abstract class Region(val closedBy: Token)
 
 
   private inline def delimiter = this match {
-    case _: inString => "}!"
-    case inParens(LPAREN, _) => ")"
-    case inParens(LBRACKET, _) => "]"
-    case inParens(LSHARP, _) => ">"
-    case _: inBraces => "}"
+    case _: InString => "}"
+    case InParens(LPAREN, _) => ")"
+    case InParens(LBRACKET, _) => "]"
+    case InParens(LSHARP, _) => ">"
+    case _: InBraces => "}"
     //case _: inCase => 
   }
 }
