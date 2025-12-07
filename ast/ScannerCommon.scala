@@ -22,6 +22,7 @@ extends CharSeqReader with TokenData
   val buf = Content
   def nextToken(): Unit
   def toToken(name: Name): Token
+  def skip(): Unit
   //protected def startLitBufSize: 
   protected var litBuf = mutable.Seq[Char]()
   protected def putChar(c: Char): Unit = litBuf = litBuf :+ c
@@ -61,7 +62,7 @@ abstract class CharSeqReader(using Context) { self =>
   var lineStartOffset: Int = startFrom
   private var lastUnicodeOffset = -1
 
-  protected def error(msg: String, offset: Int): Unit
+  def error(msg: String, offset: Int): Unit
 
   def isUnicodeEscape: Boolean = charOffset == lastUnicodeOffset
 

@@ -10,17 +10,22 @@ package ast
 
 import psi.cc.*
 import utils.*
+import ast.*
 
 private[ast]
-class Parser(Path: String)(using Context)
+class Parser
+(Content: Seq[Char], Path: String)(using Context)
+extends ParserCommon(Content, Path)
 {
   val ast: AST    = ctxt.ast
-  val Content: Seq[Char] = File(Path).read
   val sc: Scanner = new Scanner( Content, Path )
+  protected def skip(): Unit = ()
 
   def parse: Unit = {
 
-    if Content.isEmpty then Error(er"Content returned null", Path)
+    if Content.isEmpty then
+      Error(er"File content returned null\nCannot continue", Path)
+      return
 
     Content.foreach(print)
   }

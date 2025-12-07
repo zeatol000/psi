@@ -10,6 +10,7 @@ package ast
 
 import psi.cc.*
 import ast.*
+import utils.File
 
 private[cc]
 class ParserPhase
@@ -25,6 +26,9 @@ extends
     ctxt.ast ++ new NameTable
 
     for (i <- 0 until parsers.length)
-      parsers(i) = new Parser(ctxt.args.psiFiles(i))
+      parsers(i) = new Parser(
+        File(ctxt.args.psiFiles(i)).read,
+        ctxt.args.psiFiles(i)
+      )
       parsers(i).parse
 }

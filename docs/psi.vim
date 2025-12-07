@@ -1,7 +1,7 @@
-" Psi vim/neovim syntax highlighting
-
 
 syntax clear
+
+
 
 " Declares and primitive types
 syn keyword declares val var pro sub co fn op package obj class trait type mod
@@ -48,6 +48,7 @@ highlight link typedef Function
 highlight link moddef Function
 
 
+
 " Punctuation
 syn match dot			"\."
 syn match comma		","
@@ -65,9 +66,10 @@ highlight link uScore		Operator
 highlight link tilde			Operator
 highlight link optLine		Operator
 highlight link paren			Comment
-highlight link pink			Macro
 highlight link colon			Macro
 highlight link asterisk		Macro
+highlight link pink			Macro
+
 
 
 " Comments
@@ -77,15 +79,23 @@ highlight link single_comment Comment
 highlight link multi_comment Comment
 
 
-" Literals
-syn region string start="\"" end="\"" skip="\\\""
+
+" Literals		TODO: get interpolation to work
+syn region string start=/"/ end=/"/ skip=/\\"/
+"syn region interpExpr start=/\${/ end=/}/ contained contains=TOP
+"syn match interpLabel /[a-zA-Z0-9_]*"\|"/ contained
+"syn region interpolStr start=/[a-zA-Z0-9_]*"/ end=/"/ contains=interpExpr,interpLabel
+highlight link string			String
+"highlight link interpolStr 	String
+"highlight link interpLabel		Label
+"highlight link interpExpr		Normal
+
 syn keyword boolean true false
 syn keyword null null
 syn match int "\v<\d+>"
 syn match float "\v<\d+\.\d+>"
 syn match hex "\v<0x\x+([Pp]-?)?\x+>"
 syn match bin "\v<0b[01]+>"
-highlight link string String
 highlight link boolean Define
 highlight link null Define
 highlight link int Number

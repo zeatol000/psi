@@ -109,8 +109,12 @@ abstract class Tokens
   inline val OP           = 97; push( OP,         "op"          ) // Operation          -- OPDEF
   inline val PACKAGE      = 98; push( PACKAGE,    "package"     ) // Package declare    -- PACKAGEDEF
   inline val OBJ          = 99; push( OBJ,        "obj"         ) // Object declare     -- OBJDEF
-  inline val CLASS        = 100; push( CLASS,      "class"      ) // Class declare      -- CLASSDEF
+  inline val CLASS        = 100; push( CLASS,     "class"       ) // Class declare      -- CLASSDEF
   inline val TRAIT        = 101; push( TRAIT,     "trait"       ) // Trait declare      -- part of CLASSDEF
   inline val TYPE         = 102; push( TYPE,      "type"        ) // Type declare       -- might be TYPEDEF
   inline val MOD          = 103; push( MOD,       "mod"         ) // Module declare     -- MODDEF
+
+  final val closingParens = BitSet(RPAREN, RBRACKET, RSHARP, RBRACE)
+  final val openingParens = BitSet(LPAREN, LBRACKET, LSHARP, LBRACE)
+
 }

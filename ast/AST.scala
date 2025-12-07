@@ -15,7 +15,7 @@ import scala.collection.*
 
 class AST
 {
-  val magic = 0x5175CAFE  // QuCAFE -- reference to *.class' CAFEBABE & *.tasty's CAFEDADA
+  inline val magic = 0x5175CAFE  // QuCAFE -- reference to *.class' CAFEBABE & *.tasty's CAFEDADA
 
   var nTbl: NameTable = null
 
@@ -26,6 +26,6 @@ class AST
   //infix def ++ (t: Tpd)  : Unit = tpd   += (t.srcpath -> t)
   inline infix def ++ (nt: NameTable): Unit = nTbl = nt
 
-  
+  // Temp functions to make scalac behave for a bit ///////////////////////////
 }
 

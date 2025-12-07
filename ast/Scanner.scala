@@ -30,7 +30,9 @@ extends ScannerCommon(Content, Path)
   val next = newTD
   private val prev = newTD
 
-  protected def error(msg: String, off: Offset): Unit =
+  private var skipping = false
+
+  def error(msg: String, off: Offset): Unit =
     token = ERROR
     ctxt.reporter.error(msg, Path, off)
 
@@ -108,6 +110,28 @@ extends ScannerCommon(Content, Path)
     next.copyFrom(this)
     this.copyFrom(prev)
   
+  def skip(): Unit = {
+    val lastReg = currentRegion
+    skipping = true
+    def atStop =
+      token == EOF
+      || (currentRegion eq lastReg)
+          && (isStatEnd
+              || closingParens.contains(token) && lastReg.toList.exists(_.closedBy == token)
+              || token == COMMA && lastReg.toList.exists(_.commasExpected)
+            )
+    end atStop
+    var noProg = 0
+    var prevOff = offset
+    while !atStop && noProg < 3 do
+      nextToken()
+      if offset <= prevOff then noProg += 1
+      else
+        prevOff = offset
+        noProg = 0
+    skipping = false
+  }
+
   def postProcessToken(lasttoken: Token, lastname: Name): Unit =
     def fuse(tk: Token) =
       token = tk

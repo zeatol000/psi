@@ -7,6 +7,18 @@ META-INF/
 lib/
 .bin/
 
+# ignore backups and other
+*.old
+*.ignore
+*.bak
+*.old/
+
+
+
+
+
+# AUTOGEN ####################################################################
+
 # macOS
 .DS_Store
 
