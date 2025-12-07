@@ -41,11 +41,13 @@ trait TokenData {
     this.base       = td.base
   }
   def isStatEnd        = token == SEMI
+  def isStatSep        = token == NEWLINE || token == SEMI
   def isIdent          = token == IDENTIFIER
   def isIdent(n: Name) = token == IDENTIFIER && name == n
   def isNestStart      = token == LBRACE
   def isNestEnd        = token == RBRACE
   def isAfterLF        = lineOffset >= 0
   def isColon          = token == COLON || token == COLONS
+  def isArrow          = token == RARROW
   //def isOperator = token == IDENTIFIER &&
 }

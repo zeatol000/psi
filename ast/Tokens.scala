@@ -21,54 +21,52 @@ abstract class Tokens
 
   def maxToken: Int = MOD                                         // NOTE: This is the highest token and will change
   def minToken: Int = EMPTY
-  val keywords: TokenSet = BitSet(TRUE to MOD *)                  // NOTE: this is dynamically updated
-  def isKeyword(x: Int): Boolean = keywords.contains(x)
 
   // AST utility
   inline val EMPTY        = 0;  push( EMPTY,      "!empty"      ) // Missing token, used in lookahead
   inline val EOF          = 1;  push( EOF,        "!eof"        ) // End of file
   inline val ERROR        = 2;  push( ERROR,      "!error"      ) // erroneous token
 
-  // AST identifiers for token classes (Definitions aren't here)
   inline val APPLY        = 3;  push( APPLY,      "!apply"      ) // Apply a function
   inline val SELECT       = 4;  push( SELECT,     "!select"     ) // Select a value of a parent
   inline val EDITVAL      = 5;  push( EDITVAL,    "!editval"    ) // Edit a variable
+  inline val NEWLINE      = 6;  push( NEWLINE,    "!newline"    ) // statement end
 
   // Literals
-  inline val CHARLIT      = 6;  push( CHARLIT,    "!char lit"   ) // ' '
-  inline val INTLIT       = 7;  push( INTLIT,     "!int lit"    ) // 123
-  inline val LONGLIT      = 8;  push( LONGLIT,    "!long lit"   ) // 123L or gt Int.max
-  inline val DOUBLELIT    = 9;  push( DOUBLELIT,  "!double lit" ) // 123.456
-  inline val FLOATLIT     = 10; push( FLOATLIT,   "!float lit"  ) // 123.456F
-  inline val STRINGLIT    = 11; push( STRINGLIT,  "!string lit" ) // " "        AnyRef, so needs to be accessed from name table
+  inline val CHARLIT      = 13; push( CHARLIT,    "!char lit"   ) // ' '
+  inline val INTLIT       = 14; push( INTLIT,     "!int lit"    ) // 123
+  inline val LONGLIT      = 15; push( LONGLIT,    "!long lit"   ) // 123L or gt Int.max
+  inline val DOUBLELIT    = 16; push( DOUBLELIT,  "!double lit" ) // 123.456
+  inline val FLOATLIT     = 17; push( FLOATLIT,   "!float lit"  ) // 123.456F
+  inline val STRINGLIT    = 18; push( STRINGLIT,  "!string lit" ) // " "        AnyRef, so needs to be accessed from name table
 
   // Identifiers
-  inline val IDENTIFIER   = 12; push( IDENTIFIER, "!identifier" ) // NameRef(x)
-  inline val INTERPOLATION= 13; push( INTERPOLATION, "!str int" )
+  inline val IDENTIFIER   = 19; push( IDENTIFIER, "!identifier" ) // NameRef(x)
+  inline val INTERPOLATION= 20; push( INTERPOLATION, "!str int" )
 
   // Symbols
-  inline val DOT          = 14; push( DOT,        "."           ) // package accessor
-  inline val COMMA        = 15; push( COMMA,      ","           ) // separate args
-  inline val SEMI         = 16; push( SEMI,       ";"           ) // statement end (optional)
-  inline val USCORE       = 17; push( USCORE,     "_"           ) // undefined value
-  inline val TILDE        = 18; push( TILDE,      "~"           ) // all values
-  inline val ASTERISK     = 19; push( ASTERISK,   "*"           ) // op pointer
-  inline val AMPERSAND    = 19; push( AMPERSAND,  "&"           ) // op reference
-  inline val EQUALS       = 20; push( EQUALS,     "="           ) // set a value to another
-  inline val COLON        = 21; push( COLON,      ":"           ) // set a value's type to something
-  inline val COLONS       = 22; push( COLONS,     "::"          ) // explicit module accessor
-  inline val LARROW       = 23; push( LARROW,     "<-"          ) // i forgot lol
-  inline val RARROW       = 24; push( RARROW,     "=>"          ) // lambda creation
+  inline val DOT          = 25; push( DOT,        "."           ) // package accessor
+  inline val COMMA        = 26; push( COMMA,      ","           ) // separate args
+  inline val SEMI         = 27; push( SEMI,       ";"           ) // statement end (optional)
+  inline val USCORE       = 28; push( USCORE,     "_"           ) // undefined value
+  inline val TILDE        = 29; push( TILDE,      "~"           ) // all values
+  inline val ASTERISK     = 30; push( ASTERISK,   "*"           ) // op pointer
+  inline val AMPERSAND    = 31; push( AMPERSAND,  "&"           ) // op reference
+  inline val EQUALS       = 32; push( EQUALS,     "="           ) // set a value to another
+  inline val COLON        = 33; push( COLON,      ":"           ) // set a value's type to something
+  inline val COLONS       = 34; push( COLONS,     "::"          ) // explicit module accessor
+  inline val LARROW       = 35; push( LARROW,     "<-"          ) // i forgot lol
+  inline val RARROW       = 36; push( RARROW,     "=>"          ) // lambda creation
   
   // Bracing
-  inline val LPAREN       = 30; push( LPAREN,     "("           ) // Values
-  inline val RPAREN       = 34; push( RPAREN,     ")"           )
-  inline val LBRACKET     = 31; push( LBRACKET,   "["           ) // Types
-  inline val RBRACKET     = 35; push( RBRACKET,   "]"           )
-  inline val LSHARP       = 32; push( LSHARP,     "<"           ) // op-only parameters
-  inline val RSHARP       = 36; push( RSHARP,     ">"           )
-  inline val LBRACE       = 33; push( LBRACE,     "{"           ) // block
-  inline val RBRACE       = 37; push( RBRACE,     "}"           )
+  inline val LPAREN       = 42; push( LPAREN,     "("           ) // Values
+  inline val LBRACKET     = 43; push( LBRACKET,   "["           ) // Types
+  inline val LSHARP       = 44; push( LSHARP,     "<"           ) // op-only parameters
+  inline val LBRACE       = 45; push( LBRACE,     "{"           ) // block
+  inline val RPAREN       = 46; push( RPAREN,     ")"           )
+  inline val RBRACKET     = 47; push( RBRACKET,   "]"           )
+  inline val RSHARP       = 48; push( RSHARP,     ">"           )
+  inline val RBRACE       = 49; push( RBRACE,     "}"           )
 
   // Keywords
   inline val TRUE         = 50; push( TRUE,       "true"        ) //
@@ -114,7 +112,69 @@ abstract class Tokens
   inline val TYPE         = 102; push( TYPE,      "type"        ) // Type declare       -- might be TYPEDEF
   inline val MOD          = 103; push( MOD,       "mod"         ) // Module declare     -- MODDEF
 
-  final val closingParens = BitSet(RPAREN, RBRACKET, RSHARP, RBRACE)
-  final val openingParens = BitSet(LPAREN, LBRACKET, LSHARP, LBRACE)
+  final val Keywords: TokenSet = tokenRange(TRUE, MOD)                  // NOTE: this is dynamically updated
+  def isKeyword(x: Int): Boolean = Keywords.contains(x)
 
+  final val AllTokens: TokenSet = tokenRange(minToken, maxToken)
+
+  final val LiteralTokens: TokenSet =
+    tokenRange(CHARLIT, STRINGLIT) |
+    BitSet(TRUE, FALSE, NULL, INTERPOLATION)
+
+  final val AtomicExprTokens: TokenSet = LiteralTokens |
+    BitSet(IDENTIFIER, USCORE, THIS, SUPER, RETURN)
+
+
+  final val ClosingParens: TokenSet = BitSet(RPAREN, RBRACKET, RSHARP, RBRACE)
+  final val OpeningParens: TokenSet = BitSet(LPAREN, LBRACKET, LSHARP, LBRACE)
+  
+  final val CanStartInfixType: TokenSet = LiteralTokens |
+    BitSet(IDENTIFIER, THIS, SUPER, USCORE, LPAREN, LBRACE, LSHARP)
+
+
+  final val TemplateIntroTokens: TokenSet = BitSet(
+    CLASS, TRAIT, OBJ)
+  final val DeclareIntroTokens: TokenSet = tokenRange(VAL, OP) |
+    BitSet(TYPE)
+  final val DefineIntroTokens: TokenSet = DeclareIntroTokens |
+    TemplateIntroTokens
+
+
+  final val AccessModifierTokens: TokenSet = BitSet(
+    PRIVATE, INHERITED, SEALED)
+  final val LocalModifierTokens: TokenSet = BitSet(
+    ABSTRACT, FINAL)
+  final val ModifierTokens: TokenSet =
+    AccessModifierTokens | LocalModifierTokens | BitSet(OVERRIDE)
+  final val ModifierFollowers: TokenSet =
+    ModifierTokens | DefineIntroTokens
+
+
+  final val MustStartStatTokens: TokenSet =
+    ModifierFollowers | BitSet(IMPORT, PACKAGE)
+  final val VanEndStatTokens: TokenSet =
+    AtomicExprTokens | ClosingParens | BitSet(TYPE)
+  final val StatContinueTokens: TokenSet = BitSet(
+    ELSE, CATCH, FINALLY, MATCH)
+  final val CanStartExprTokens: TokenSet =
+    MustStartStatTokens | BitSet(CASE)
+
+  final val EndMarkerTokens: TokenSet = BitSet(
+    IDENTIFIER, IF, WHILE, MATCH, TRY, NEW, THROW, VAL, THIS)
+
+  final val RegionCloseTokens: TokenSet =
+    StatContinueTokens | ClosingParens | BitSet(CASE)
+
+  final val NumericLitTokens: TokenSet = tokenRange(INTLIT, FLOATLIT)
+
+  final val StopScanTokens: TokenSet = MustStartStatTokens |
+    BitSet(IF, ELSE, WHILE, NEW, TRY, CATCH, FINALLY,
+      THROW, RETURN, MATCH, SEMI, EOF)
+
+  def showString(tk: Int): String =
+    val str = tokenStr(tk)
+    if isKeyword(tk) then
+      s"'${str}'"
+    else
+      str
 }

@@ -27,6 +27,12 @@ case class File(
   def isFile: Boolean = Files.isRegularFile(Paths.get(path))
   def isDir:  Boolean = Files.isDirectory  (Paths.get(path))
 
+  def encoding: Int =
+    val bom = Files.readAllBytes(Paths.get(path)).take(4)
+    if      bom.sameElements(Array(0xFE, 0xFF))       then 16
+    else if bom.sameElements(Array(0xFF, 0xFE))       then 16
+    else if bom.sameElements(Array(0xEF, 0xBB, 0xBF)) then 8
+    else 8
 
   def create:  Unit = if path(path.length - 1) eq '/'
     then createD
@@ -38,7 +44,7 @@ case class File(
   def write(chars: Seq[Char]): Unit =
     Using.resource(new DataOutputStream(new FileOutputStream(path))) { dataOStream =>
       chars.foreach { c =>
-        if (utils.sysChar == 8) dataOStream.writeByte(c.toByte)
+        if (this.encoding == 8) dataOStream.writeByte(c.toByte)
         else dataOStream.writeChar(c)
       }
     }
@@ -49,7 +55,7 @@ case class File(
       val buffer = ListBuffer[Char]()
       var reading = true
       while (reading) try {
-        val c = (if utils.sysChar == 8 then // Support windows appearantly
+        val c = (if this.encoding == 8 then // Support windows appearantly
           DataIStream.readByte().toChar
           else DataIStream.readChar() ) 
         buffer.addOne(c)

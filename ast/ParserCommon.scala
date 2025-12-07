@@ -64,7 +64,6 @@ abstract class ParserCommon
 {
   val sc: ScannerCommon
   val ast: AST
-  protected def skip(): Unit
   protected var lastErrorOffset: Offset = -1
   def syntaxError(msg: String, off: Offset, skip: Boolean): Unit =
     if off > lastErrorOffset then

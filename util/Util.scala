@@ -9,8 +9,3 @@ package psi.cc
 package utils
 
 inline def void: Unit = () // useful for terminating match cases
-
-def sysChar: Int = // system size of a char (((((NOT A JVM CHAR)))))
-  if (System.getProperty("os.name").toLowerCase == "windows") 16
-  else 8
-

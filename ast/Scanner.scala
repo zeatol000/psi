@@ -117,7 +117,7 @@ extends ScannerCommon(Content, Path)
       token == EOF
       || (currentRegion eq lastReg)
           && (isStatEnd
-              || closingParens.contains(token) && lastReg.toList.exists(_.closedBy == token)
+              || ClosingParens.contains(token) && lastReg.toList.exists(_.closedBy == token)
               || token == COMMA && lastReg.toList.exists(_.commasExpected)
             )
     end atStop
@@ -396,6 +396,8 @@ extends ScannerCommon(Content, Path)
       peekAhead()
       reset()
     next
+
+  class LookaheadScanner() extends Scanner(Content, Path)
 
   //def isSoftModifier: Boolean =
   //  token == IDENTIFIER

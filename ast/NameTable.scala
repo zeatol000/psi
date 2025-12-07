@@ -23,12 +23,16 @@ class NameTable {
 
 type NameRef = Int
 
-case class Name (name: String) extends NameTable {
+private trait actualName extends NameTable {
+  def name: String
   def index: Int = table.indexOf(name)
   def insert: Unit = insert(name)
+  def apply(n: Int): Char = name(n)
+  def length: Int = name.length
 }
 
-case class NameType (name: String) extends NameTable {
-  def index: Int = table.indexOf(name)
-  def insert: Unit = insert(name)
-}
+case class Name (name: String)
+extends NameTable, actualName
+
+case class NameType (name: String)
+extends NameTable, actualName
