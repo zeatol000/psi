@@ -6,16 +6,16 @@
 \*                                              */
 
 package psi.cc
-package ast
+package parser
 
 import utils.chars.*
-import ast.*
 import Tokens.*
 import utils.*
+import ast.*
 import scala.collection.mutable
 import scala.compiletime.uninitialized
 
-//case class OpInfo(operand: AST, operator: , offset: Offset)
+case class OpInfo(operand: Treee, operator: Ident, offset: Offset)
 
 enum Location (val inParens: Boolean, val inPattern: Boolean, val inArgs: Boolean)
 { // I HAVE NO IDEA HOW TO USE ENUMS!!!! SCALA'S DOCUMENTATION SUCKS!!!! I LOVE SCALA
@@ -56,7 +56,14 @@ object StageKind
 }
 
 //private[ast] val InCase: Region => Region = InCase(_)
-//private[ast] val InCond: Region => Region = InParens
+private[ast] val InCond: Region => Region = InParens(LPAREN, _)
+
+
+extension (xs: ListBuffer[Tree])
+  def +++= (x: Tree) = x match {
+    case x: Thicket => buf ++= x.trees
+    case x => buf += x
+  }
 
 
 abstract class ParserCommon
@@ -72,8 +79,37 @@ abstract class ParserCommon
     if skip then sc.skip()
  }
 
-/*trait OutlineParserCommon extends ParserCommon
+trait OutlineParserCommon extends ParserCommon
 {
   def accept(token: Token): Token
-  def skipBracesHook(): 
-}*/
+  def skipBraces(): Unit = {
+    accept( LBRACE )
+    var openBraces = 1
+    while sc.token != EOF && openBraces > 0 do
+      if (sc.token == LBRACE) openBraces += 1
+      else if (sc.token == RBRACE) openBraces -= 1
+      sc.nextToken()
+  }
+}
+
+
+
+
+
+
+
+
+// OutlineParser //////////////////////////////////////////////////////////////
+private[ast]
+class OutlineParser
+(Content: Seq[Char], Path: String)(using Context)
+extends Parser(Content, Path) with OutlineParserCommon(Content, String)
+{
+  override def blockExpr(): Tree =
+    skipBraces()
+    EmptyTree
+
+  override def templateBody(parents: List[Tree], rewriteWithColon: Boolean): (ValDef, List[Thicket]) =
+    skipBraces()
+    (EmptyValDef, List(EmptyTree))
+}

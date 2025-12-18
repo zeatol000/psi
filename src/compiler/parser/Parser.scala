@@ -6,7 +6,7 @@
 \*                                              */
 
 package psi.cc
-package ast
+package parser
 
 import psi.cc.*
 import utils.*
@@ -61,6 +61,31 @@ extends ParserCommon(Content, Path)
   def skip() =
     sc.skip()
     lastErrorOffset = sc.offset
+
+  def accept(token: Int): Int =
+    val offset = sc.offset
+    if sc.token != token then sc.error(er"Expected $token but found ${sc.token}", offset)
+    if sc.token == token then sc.nextToken()
+    offset
+
+  def accept(name: Name): Int =
+    val offset = sc.offset
+    if !IsIdent(name) then sc.error(er"'$name' expected", offset)
+    if IsIdent(name) then sc.nextToken()
+    offset
+
+  def acceptColon(): Int =
+    val offset = sc.offset
+    val current = sc.token
+    sc.nextToken()
+    if sc.token == COLON then // ::
+      sc.nextToken()
+      offset
+    else // :
+      offset
+
+  def acceptStatSep(): Unit =
+    if sc.isNewLine then sc.nextToken() else accept(SEMI)
 
   private var staged = StageKind.None
 }

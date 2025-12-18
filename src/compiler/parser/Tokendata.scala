@@ -6,7 +6,7 @@
 \*                                              */
 
 package psi.cc
-package ast
+package parser
 
 import ast.*
 import Tokens.*
@@ -40,7 +40,7 @@ trait TokenData {
     this.strval     = td.strval
     this.base       = td.base
   }
-  def isStatEnd        = token == SEMI
+  def isNewLine        = token == NEWLINE
   def isStatSep        = token == NEWLINE || token == SEMI
   def isIdent          = token == IDENTIFIER
   def isIdent(n: Name) = token == IDENTIFIER && name == n

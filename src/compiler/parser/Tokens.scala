@@ -6,10 +6,8 @@
 \*                                              */
 
 package psi.cc
-package ast
+package parser
 
-import ast.Token
-import ast.TokenSet
 import scala.collection.immutable.BitSet
 
 object Tokens extends Tokens
@@ -91,7 +89,7 @@ abstract class Tokens
   // Modifiers
   inline val ABSTRACT     = 68; push( ABSTRACT,   "abstract"    ) //
   inline val FINAL        = 69; push( FINAL,      "final"       ) //
-  inline val PRIVATE      = 70; push( PRIVATE,    "private"     ) //
+  inline val PUB          = 70; push( PUB,        "pub"         ) // values are fully private by default, with the exception of programs
   inline val INHERITED    = 71; push( INHERITED,  "inherited"   ) // protected in other languages
   inline val OVERRIDE     = 72; push( OVERRIDE,   "override"    ) //
   inline val SEALED       = 73; push( SEALED,     "sealed"      ) //
@@ -141,7 +139,7 @@ abstract class Tokens
 
 
   final val AccessModifierTokens: TokenSet = BitSet(
-    PRIVATE, INHERITED, SEALED)
+    PUB, INHERITED, SEALED)
   final val LocalModifierTokens: TokenSet = BitSet(
     ABSTRACT, FINAL)
   final val ModifierTokens: TokenSet =

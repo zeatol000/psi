@@ -6,7 +6,7 @@
 \*                                              */
 
 package psi.cc
-package ast
+package parser
 
 import utils.chars.*
 import ast.*
@@ -116,7 +116,7 @@ extends ScannerCommon(Content, Path)
     def atStop =
       token == EOF
       || (currentRegion eq lastReg)
-          && (isStatEnd
+          && (isStatSep
               || ClosingParens.contains(token) && lastReg.toList.exists(_.closedBy == token)
               || token == COMMA && lastReg.toList.exists(_.commasExpected)
             )

@@ -29,6 +29,7 @@ private trait actualName extends NameTable {
   def insert: Unit = insert(name)
   def apply(n: Int): Char = name(n)
   def length: Int = name.length
+  override def toString: String = name
 }
 
 case class Name (name: String)

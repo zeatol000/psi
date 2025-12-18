@@ -1,5 +1,0 @@
-pro main(args: Array[String]): Null = {
-	println("Hello, World!")
-
-	println(s"\nArgs pushed:\n${args.mkString("\n")}")
-}

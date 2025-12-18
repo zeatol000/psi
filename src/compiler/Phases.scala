@@ -8,8 +8,8 @@
 package psi.cc
 
 import psi.cc.*
-import psi.cc.ast.  {ParserPhase    => Parser}
-import psi.cc.typer.{AnalyzerPhase  => Analyzer}
+import psi.cc.parser.{ParserPhase    => Parser}
+import psi.cc.typer. {AnalyzerPhase  => Analyzer}
 import psi.cc.utils.FatalError
 
 private[cc]

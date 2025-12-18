@@ -18,13 +18,14 @@ class AST
   inline val magic = 0x5175CAFE  // QuCAFE -- reference to *.class' CAFEBABE & *.tasty's CAFEDADA
 
   var nTbl: NameTable = null
+  inline infix def ++ (nt: NameTable): Unit = nTbl = nt
 
+  
   //var untpd = mutable.Map[String, Untpd]()
   //var tpd   = mutable.Map[String, Tpd]()
 
   //infix def ++ (u: Untpd): Unit = untpd += (u.srcpath -> u)
   //infix def ++ (t: Tpd)  : Unit = tpd   += (t.srcpath -> t)
-  inline infix def ++ (nt: NameTable): Unit = nTbl = nt
 
   // Temp functions to make scalac behave for a bit ///////////////////////////
 }
