@@ -1,0 +1,20 @@
+>--verbose
+
+
+pro main(): Null = {
+	foo("Hello, World")
+}
+
+fn foo(x: String): Null = {
+	if (x == "Hello, World!") {
+		println(x)
+	} else {
+		println("Hello, Psi!!")
+	}
+}
+
+// TODO:
+// Remake naming system to use hash codes and stuff
+// Create AST Tree system
+// Create Parser
+
