@@ -18,7 +18,7 @@ class Reporter
   var warnings: Int = 0
   var hasCompilerError: Boolean = false
   
-  def error(msg: String, file: String, offset: ast.Offset = 0)(using Context): Unit =  // LATER: add better formatting and text highlighting
+  def error(msg: String, file: String, offset: parser.Offset = 0)(using Context): Unit =  // LATER: add better formatting and text highlighting
     errors += 1
     var finalMsg: String = s"[ERR] (_ID_HERE_: ERROR) ${file}:${offset}\n"    // TODO: replace the second ERROR with the name of the error id
     msg.split("\n") foreach { i => finalMsg = finalMsg + s"    | ${i}\n" }

@@ -12,10 +12,12 @@ import utils.chars.*
 import Tokens.*
 import utils.*
 import ast.*
+import ast.Trees.*
 import scala.collection.mutable
+import mutable.ListBuffer
 import scala.compiletime.uninitialized
 
-case class OpInfo(operand: Treee, operator: Ident, offset: Offset)
+case class OpInfo(operand: Tree, operator: Ident, offset: Offset)
 
 enum Location (val inParens: Boolean, val inPattern: Boolean, val inArgs: Boolean)
 { // I HAVE NO IDEA HOW TO USE ENUMS!!!! SCALA'S DOCUMENTATION SUCKS!!!! I LOVE SCALA
@@ -55,14 +57,14 @@ object StageKind
   inline val QuotedPattern = 1 << 2
 }
 
-//private[ast] val InCase: Region => Region = InCase(_)
-private[ast] val InCond: Region => Region = InParens(LPAREN, _)
+//private[parser] val InCase: Region => Region = InCase(_)
+private[parser] val InCond: Region => Region = InParens(LPAREN, _)
 
 
 extension (xs: ListBuffer[Tree])
   def +++= (x: Tree) = x match {
-    case x: Thicket => buf ++= x.trees
-    case x => buf += x
+    case x: Thicket => xs ++= x.trees
+    case x => xs += x
   }
 
 
@@ -70,7 +72,7 @@ abstract class ParserCommon
 (Content: Seq[Char], Path: String)(using Context)
 {
   val sc: ScannerCommon
-  val ast: AST
+  val ast: Tree
   protected var lastErrorOffset: Offset = -1
   def syntaxError(msg: String, off: Offset, skip: Boolean): Unit =
     if off > lastErrorOffset then
@@ -100,10 +102,10 @@ trait OutlineParserCommon extends ParserCommon
 
 
 // OutlineParser //////////////////////////////////////////////////////////////
-private[ast]
+private[parser]
 class OutlineParser
 (Content: Seq[Char], Path: String)(using Context)
-extends Parser(Content, Path) with OutlineParserCommon(Content, String)
+extends Parser(Content, Path) with OutlineParserCommon
 {
   override def blockExpr(): Tree =
     skipBraces()

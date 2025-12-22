@@ -14,7 +14,9 @@ fn foo(x: String): Null = {
 }
 
 // TODO:
-// Remake naming system to use hash codes and stuff
+// Actually make utilities
+// Remake scanner and parser to use new Name classes
+// Finish all of the compiler/ast/symbols dir
 // Create AST Tree system
 // Create Parser
 

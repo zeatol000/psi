@@ -28,8 +28,8 @@ abstract class Context
 {
   def reporter: Reporter
   def args: cliArgs
-  def ast: AST
-  def ++(x: AST): Unit
+  //def ast: AST
+  //def ++(x: AST): Unit
 
   protected given Context = this
 }
@@ -38,12 +38,12 @@ class ContextInit
 (
   var _reporter: Reporter,
   var _args: cliArgs,
-  var _ast: AST = null,
+  //var _ast: AST = null,
 ) extends
     Context
 {
   def reporter: Reporter = _reporter
   def args: cliArgs = _args
-  def ast: AST = _ast
-  def ++(x: AST): Unit = _ast = x
+  //def ast: AST = _ast
+  //def ++(x: AST): Unit = _ast = x
 }

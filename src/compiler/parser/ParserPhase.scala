@@ -22,8 +22,6 @@ extends
   def run(using Context): Unit =
     val parsers: Array[Parser] = new Array(ctxt.args.psiFiles.length)
 
-    ctxt ++ new AST
-    ctxt.ast ++ new NameTable
 
     for (i <- 0 until parsers.length)
       parsers(i) = new Parser(

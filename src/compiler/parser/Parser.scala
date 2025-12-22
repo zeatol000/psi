@@ -11,14 +11,15 @@ package parser
 import psi.cc.*
 import utils.*
 import ast.*
+import ast.Trees.*
 import Tokens.*
 
-private[ast]
+private[parser]
 class Parser
 (Content: Seq[Char], Path: String)(using Context)
 extends ParserCommon(Content, Path)
 {
-  val ast: AST    = ctxt.ast
+  val ast: Tree = null
   val sc: Scanner = new Scanner( Content, Path )
 
   def parse: Unit = {

@@ -95,9 +95,9 @@ object Flags
     SEALED | OVERRIDE | CASE | ABSOVERRIDE
 
   inline def PrintableFlags = ExplicitFlags | LOCAL | SYNTHETIC | STABLE |
-    CASEACCESSOR | PARAMACCESSOR | BRIDGE | STATIC
+     PARAMACCESSOR | BRIDGE | STATIC
 
-  inline def FieldFlags = MUTABLE | CASEACCESSOR | PARAMACCESSOR | STATIC | FINAL
+  inline def FieldFlags = MUTABLE | PARAMACCESSOR | STATIC | FINAL
 
   inline def AccessFlags = PUBLIC | INHERITED
   inline def VARIANCES   = COVARIANT | CONTRAVARIANT
@@ -140,7 +140,6 @@ object Flags
     case SYNTHETIC      => "<synthetic>"
     case STABLE         => "<stable>"
     case STATIC         => "<static>"
-    case CASEACCESSOR   => "<casecaccessor>"
     case TRAIT          => "<trait>"
     case BRIDGE         => "<bridge>"
     case ACCESSOR       => "<accessor>"

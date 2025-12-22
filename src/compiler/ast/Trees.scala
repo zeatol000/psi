@@ -9,10 +9,12 @@ package psi.cc
 package ast
 
 import psi.cc.utils.*
+import psi.cc.ast.symbols.*
 import psi.cc.ast.symbols.Flags.*
 import scala.collection.*
+import scala.compiletime.uninitialized
 
-trait Trees
+object Trees
 {
   var nodeCount = 0
 
@@ -28,7 +30,7 @@ trait Trees
     def isSealed    = (flags & SEALED   ) != 0
     def isFinal     = (flags & FINAL    ) != 0
     def isTrait     = (flags & TRAIT    ) != 0
-    def isPublic    = (falgs & PUBLIC   ) != 0
+    def isPublic    = (flags & PUBLIC   ) != 0
     def hasFlag (flag: Int) = (flags & flag) != 0
     def | (flag: Int): Modifiers =
       val f1 = flags | flag
@@ -46,7 +48,7 @@ trait Trees
     private var posx: Int = Position.NOPOS
     def pos = posx
 
-    var tpe: Type = _
+    var tpe: Type = uninitialized
 
     def setPos(p: Int): this.type = { posx = p; this }
     def setType(tp: Type): this.type = { tpe = tp; this }
@@ -67,7 +69,7 @@ trait Trees
       case t: Tree => this eq t
       case _ => false
 
-    def duplicate: this.type = (duplicator transform this).asInstanceOf[this.type]
+    def duplicate: this.type = (duplicator.transform(this)).asInstanceOf[this.type]
 
     def copyAttrs(tree: Tree): this.type =
       posx = tree.posx
