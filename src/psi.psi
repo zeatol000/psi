@@ -1,6 +1,5 @@
 >--verbose
 
-
 pro main(): Null = {
 	foo("Hello, World")
 }

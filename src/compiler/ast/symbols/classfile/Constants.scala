@@ -59,3 +59,4 @@ object ClassfileConstants
   inline val ARRAY_TAG  = '['
   inline val VOID_TAG   = 'V'
   inline val ANNOTATION_TAG = '@'
+}
