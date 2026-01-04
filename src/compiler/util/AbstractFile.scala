@@ -14,7 +14,7 @@ import java.util.Iterator
 import java.util.jar.JarFile
 import java.util.zip.ZipFile
 
-abstract class AbstractFile
+sealed trait AbstractFileCommon
 {
   def getFile(path: String): AbstractFile = getFile(new File(path))
   def getFile(file: File  ): AbstractFile = if file.isFile() && file.exists()
@@ -28,7 +28,15 @@ abstract class AbstractFile
       val path: String = file.getPath()
       if path.endsWith(".jar") || path.endsWith(".zip") then return ZipArchive.fromFile(file)
     null
-  
+}
+
+
+
+object AbstractFile extends AbstractFileCommon
+
+abstract class AbstractFile
+extends AbstractFileCommon
+{
   def lookupPath(path: String, dir: Boolean): AbstractFile =
     var ret: AbstractFile = null
     val len: Int = path.length()
@@ -47,6 +55,7 @@ abstract class AbstractFile
           break
     ret
 
+
   def toString: String = getPath
 
   def getName: String
@@ -56,4 +65,5 @@ abstract class AbstractFile
   def lastModified: Long
   def read: Array[Char]
   def lookupName(name: String, dir: Boolean): AbstractFile
+  def toList: List[AbstractFile]
 }

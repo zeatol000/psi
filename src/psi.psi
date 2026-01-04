@@ -13,7 +13,7 @@ fn foo(x: String): Null = {
 }
 
 // TODO:
-// Actually make utilities
+// Add utilities: SourceFile, Span, and collections
 // Remake scanner and parser to use new Name classes
 // Finish all of the compiler/ast/symbols dir
 // Create AST Tree system

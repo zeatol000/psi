@@ -31,11 +31,16 @@ class ClassPath (onlyPresentation: Boolean)
     override def toString() = location.toString()
   }
 
-  class Output(val location: AbstractFile, val sourceFile: AbstractFile) extends Entry {
+  class Output(
+    val location: AbstractFile,
+    val sourceFile: AbstractFile
+  ) extends Entry(location) {
     def source = if (sourceFile != null) new Source(sourceFile, true) else null
   }
 
-  class Library(val location: AbstractFile) extends Entry {
+  class Library(
+    val location: AbstractFile
+  ) extends Entry(location) {
     def doc: AbstractFile = null
     def sourceFile: AbstractFile = null
     def source = if (sourceFile != null) new Source(sourceFile, false) else null
@@ -76,13 +81,13 @@ class ClassPath (onlyPresentation: Boolean)
 
     def isPackage: Boolean = () match
       case _ if entries.isEmpty                 => false
-      case _ if entries.head.location != null   => entries.head.location.isDirectory()
-      case _                                    => entries.head.source.location.isDirectory()
+      case _ if entries.head.location != null   => entries.head.location.isDirectory
+      case _                                    => entries.head.source.location.isDirectory
 
 
-    override def toString(): String = toString(entries)
+    def toString: String = toString(entries)
 
-    def toString(entry: Entrty): String = (
+    def toString(entry: Entry): String = (
       (if entry.location == null
         then "<none>"
         else entry.location.toString()
@@ -91,6 +96,7 @@ class ClassPath (onlyPresentation: Boolean)
         then ""
         else " with_source=" + entry.source.location.toString()
       ))
+
     @tailrec
     def toString(entries_ : List[Entry]): String =
       if entries_.isEmpty then ""
@@ -100,20 +106,24 @@ class ClassPath (onlyPresentation: Boolean)
       def head = entries.head
       def class_ = head.location
       def source = if (head.source == null) null else head.source.location
-      def isPredef = source.getName().equals("psi_std.psi")
+      def isPredef = source.getName.equals("psi_std.psi")
 
       () match
-        case _ if entries.isEmpty || source == null => false
+        case _ if entries.isEmpty || source == null         => false
         case _ if !onlyPresentation && !head.source.compile => false
-        case _ if source.isDirectory() => false
-        case _ if class_ == null => true
-        case _ if onlyPresentation && !isPredef => true
-        case _ if source.lastModified() > class_.lastModified() => true
+        case _ if source.isDirectory                        => false
+        case _ if class_ == null                            => true
+        case _ if onlyPresentation && !isPredef             => true
+        case _ if source.lastModified > class_.lastModified => true
         case _ => false
     }
 
-    def sourceFile = if entries.head.source != null && !entries.head.source.location.isDirectory()
-      then entries.head.source.location else null
+    def sourceFile =
+      if
+        entries.head.source != null &&
+        !entries.head.source.location.isDirectory
+      then entries.head.source.location
+      else null
 
     def classFile = if !isSourceFile then entries.head.location else null
 
@@ -125,30 +135,36 @@ class ClassPath (onlyPresentation: Boolean)
   class Build {
     val entries = new ArrayBuffer[Entry]
 
-    def root = new Context(entries.toList)\
+    def root = new Context(entries.toList)
     def this(classpath: String) =
       this()
       addFilesInPath(classpath)
 
-    def this(classpath: String, source: String, output: String, boot: String, extdirs: String) =
+    def this(
+      classpath: String,
+      source: String,
+      output: String,
+      boot: String,
+      extdirs: String
+    ) =
       this()
-    addFilesInPath(boot)
-    addArchivesInExtDirPath(extdirs)
-    val classes = AbstractFile.getDirectory(output)
-    if classes == null then
-      System.err.println(s"Output location \"${output}\" not found")
-      System.exit(1) // murder
-    val strtoken = new StringTokenizer(source, File.pathSeparator)
-    if !strtoken.hasMoreTokens() then
-      entries += ne Output(classes, null)
-    else while strtoken.hasMoreTokens() do
-      entries += new Output(
-        classes,
-        AbstractFile.getDirectory(strtoken.nextToken())
-      )
-    addFilesInPath(classpath)
+      addFilesInPath(boot)
+      addArchivesInExtDirPath(extdirs)
+      val classes = AbstractFile.getDirectory(output)
+      if classes == null then
+        System.err.println(s"Output location \"${output}\" not found")
+        System.exit(1) // murder
+      val strtoken = new StringTokenizer(source, File.pathSeparator)
+      if !strtoken.hasMoreTokens() then
+        entries += new Output(classes, null)
+      else while strtoken.hasMoreTokens() do
+        entries += new Output(
+          classes,
+          AbstractFile.getDirectory(strtoken.nextToken())
+        )
+      addFilesInPath(classpath)
 
-    def library(classes: String. sources: String) =
+    def library(classes: String, sources: String) =
       assert(classes != null)
       val location = AbstractFile.getDirectory(classes)
       val sourceF = if sources != null then AbstractFile.getDirectory(sources) else null
@@ -166,15 +182,15 @@ class ClassPath (onlyPresentation: Boolean)
       val strtoken = new StringTokenizer(p, File.pathSeparator)
       while strtoken.hasMoreTokens() do
         val f = AbstractFile.getDirectory(strtoken.nextToken())
-        val fs = if f != null then f.list() else null
-        if fs != null then while fs.hasNext() do
+        val fs = if f != null then f.toList.iterator else null
+        if fs != null then while fs.hasNext do
           val f_ = fs.next().asInstanceOf[AbstractFile]
-          val n = f_.getName()
+          val n = f_.getName
           if n.endsWith(".jar") || n.endsWith(".zip") then
-            val a = AbstractFile.getDirectory( new File(f.getFile(), n) )
+            val a = AbstractFile.getDirectory( new File(f.getFile, n) )
             if a != null then entries != new Library(a)
 
-    override def toString() =
+    override def toString =
       entries.toList.mkString(File.pathSeparator)
   }
 }
