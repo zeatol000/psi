@@ -6,3 +6,8 @@
 \*                                              */
 
 package psic.tools
+package object io:
+
+  type JManifest = java.util.jar.Manifest
+  type JFile = java.io.File
+  type JPath = java.nio.file.Path

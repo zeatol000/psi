@@ -6,3 +6,6 @@
 \*                                              */
 
 package psic.tools
+package io
+
+object FileWriters {}

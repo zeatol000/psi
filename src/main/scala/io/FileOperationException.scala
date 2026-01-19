@@ -6,3 +6,6 @@
 \*                                              */
 
 package psic.tools
+package io
+
+case class FileOperationException(msg: String) extends RuntimeException(msg)

@@ -16,9 +16,12 @@ fn foo(x: String): Void = {
 }
 
 // TODO:
-// Add utilities: SourceFile, and collections
-// Rewrite opt lines to start with # to ignore the shebang
-// Finish all of the compiler/ast/symbols dir
-// Create AST Tree system
-// Remake scanner and parser to use new Name classes
-// Create Parser
+// debug.*
+// comp.utils.*
+// ast
+// types
+// context
+// reporting
+// parsing
+// codegen
+// io.{ClassPath, FileWriters}
