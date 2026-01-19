@@ -1,0 +1,24 @@
+#--verbose
+
+package test
+import psi.*
+
+pro main(): Void = {
+	foo("Hello, World")
+}
+
+fn foo(x: String): Void = {
+	if (x == "Hello, World!") {
+		println(x)
+	} else {
+		println("Hello, Psi!!")
+	}
+}
+
+// TODO:
+// Add utilities: SourceFile, and collections
+// Rewrite opt lines to start with # to ignore the shebang
+// Finish all of the compiler/ast/symbols dir
+// Create AST Tree system
+// Remake scanner and parser to use new Name classes
+// Create Parser
