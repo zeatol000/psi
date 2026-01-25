@@ -16,12 +16,13 @@ fn foo(x: String): Void = {
 }
 
 // TODO:
-// debug.*
 // comp.utils.*
 // ast
+// debug.*
 // types
 // context
 // reporting
 // parsing
 // codegen
+// comp.*
 // io.{ClassPath, FileWriters}

@@ -7,7 +7,9 @@
 
 package psic
 package object tools {
-  
+ 
+  case class FatalError(msg: String) extends Exception(msg)
+
   def unsupported(name: String): Nothing =
     throw new UnsupportedOperationException(name)
 

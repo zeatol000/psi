@@ -5,3 +5,8 @@
  * /_/    /____/___/                            *
 \*                                              */
 
+package psic.tools
+package object comp {
+
+  
+}

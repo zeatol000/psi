@@ -5,3 +5,7 @@
  * /_/    /____/___/                            *
 \*                                              */
 
+package psic.tools
+package comp
+
+object Main extends Driver
