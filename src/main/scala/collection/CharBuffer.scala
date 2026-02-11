@@ -6,7 +6,7 @@
 \*                                              */
 
 package psic.tools
-package comp.util
+package collection
 
 class CharBuffer(initialSize: Int = 1024)
 {

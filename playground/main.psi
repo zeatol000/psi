@@ -1,6 +1,6 @@
 
-package test
-import psi.jvm..
+pkg test
+use psi.jvm..
 
 pro main(): Void = {
 	println(fib(5))
@@ -16,13 +16,11 @@ fn fib(x: Int): Int = {
 		j = ret
 		ran += 1
 	}
-	
 }
 
 // TODO:
 // comp.utils.*
 // ast
-// debug.*
 // types
 // context
 // reporting
