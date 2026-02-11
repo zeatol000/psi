@@ -1,18 +1,22 @@
-#--verbose
 
 package test
-import psi.*
+import psi.jvm..
 
 pro main(): Void = {
-	foo("Hello, World")
+	println(fib(5))
 }
 
-fn foo(x: String): Void = {
-	if (x == "Hello, World!") {
-		println(x)
-	} else {
-		println("Hello, Psi!!")
+fn fib(x: Int): Int = {
+	let ret = 1
+	var ran: Int = 0
+	var i, j: Int = 1
+	while (ran > x - 2) {
+		ret = i + j
+		i = j
+		j = ret
+		ran += 1
 	}
+	
 }
 
 // TODO:
