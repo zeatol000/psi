@@ -10,5 +10,9 @@ package comp.util
 
 import psic.tools.comp.core.Names.*
 
-import scala.annotaion.internal.sharable
+import java.io.PrintStream
+import java.nio.charset.StandardCharsets
+import java.lang.Long.toHexString
+import java.lang.Float.intBitsToFloat
+import java.lang.Double.longBitsToDouble
 */

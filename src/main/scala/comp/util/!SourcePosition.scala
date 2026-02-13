@@ -8,7 +8,10 @@
 package psic.tools
 package comp.util
 
-import psic.tools.comp.core.Names.*
+import psic.tools.comp.core.printing.{Showable, Printer}
+import psic.tools.comp.core.printing.Texts.*
+import psic.tools.comp.core.Ctx.Context
+import psic.tools.collection.Spans.{Span, NoSpan}
 
-import scala.annotaion.internal.sharable
+import scala.annotation.internal.sharable
 */

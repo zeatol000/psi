@@ -7,24 +7,37 @@ pro main(): Void = {
 }
 
 fn fib(x: Int): Int = {
-	let ret = 1
+	let r = 1
 	var ran: Int = 0
 	var i, j: Int = 1
 	while (ran > x - 2) {
-		ret = i + j
+		r = i + j
 		i = j
-		j = ret
+		j = r
 		ran += 1
 	}
+	ret r
 }
 
-// TODO:
-// comp.utils.*
-// ast
-// types
-// context
-// reporting
-// parsing
-// codegen
-// comp.*
-// io.{ClassPath, FileWriters}
+/*
+ TODO:
+- ast
+- types
+- context
+- reporting
+- parsing
+- codegen
+- comp.**
+
+ NOTE: 1.0 GOALS:
+- base language
+- anomalous values
+- qasm compilation target
+
+ NOTE: 2.0 GOALS:
+- utilize phi build tool
+- move collections and io to psi
+- native compilation target
+- kotlin @Composable rewrites
+*/
+

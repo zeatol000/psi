@@ -6,9 +6,8 @@
 \*                                              *
 
 package psic.tools
-package comp.util
+package collection
 
-import psic.tools.comp.core.Names.*
-
-import scala.annotaion.internal.sharable
+import psic.tools.uncheckedNN
+import psic.tools.collection.GenericHashMap
 */

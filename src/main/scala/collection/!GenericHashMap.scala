@@ -6,9 +6,10 @@
 \*                                              *
 
 package psic.tools
-package comp.util
+package collection
 
-import psic.tools.comp.core.Names.*
+import psic.tools.uncheckedNN
+import psic.tools.comp.util.Stats
 
-import scala.annotaion.internal.sharable
+import scala.compiletime.uninitialized
 */
