@@ -54,6 +54,7 @@ syn sync minlines=200 maxlines=1000
 " pub			public																				 "
 " ret			return																				 "
 " seal		sealed																				 "
+" struct					 																			 "
 " super																								 "
 " this																								 "
 " throw																								 "
@@ -64,7 +65,6 @@ syn sync minlines=200 maxlines=1000
 " val																									 "
 " var																									 "
 " while																								 "
-" yield																								 "
 "												WILDCARDS											 "
 " ?																									 "
 " ..																									 "
@@ -73,8 +73,8 @@ syn sync minlines=200 maxlines=1000
 " /*  */																								 "
 " ---------------------------------------------------------------------------- "
 
-syn keyword psiKeyword catch else finally match throw try while yield if
-syn keyword psiKeyword cls trait obj enum					nextgroup=psiInstanceDeclare 		  skipwhite
+syn keyword psiKeyword catch else finally match throw try while if
+syn keyword psiKeyword cls trait obj enum	struct type	nextgroup=psiInstanceDeclare 		  skipwhite
 syn keyword psiKeyword case									nextgroup=psiCaseFollowing 		  skipwhite
 syn keyword psiKeyword val var								nextgroup=psiNameDefine				  skipwhite
 syn keyword psiKeyword op let ret 							nextgroup=psiKeyword,psiNameDefine skipwhite
@@ -179,8 +179,8 @@ syn keyword psiKeyModifier abs ovr fin pub seal super
 hi def link psiKeyModifier Function
 
 
-syn match psiKeyModifier /\<pro\>\(\s\+\(cls\|trait\|obj\|enum\|val\|var\|op\|let\|fn\|abs\|ovr\|fin\|pub\|seal\|super\)\)\@=/
-syn match psiKeyword 	 /\<pro\>\(\s\+\(cls\|trait\|obj\|enum\|val\|var\|op\|let\|fn\|abs\|ovr\|fin\|pub\|seal\|super\)\)\@!/	nextgroup=psiNameDefine skipwhite
+syn match psiKeyModifier /\<pro\>\(\s\+\(cls\|trait\|obj\|enum\|struct\|type\|val\|var\|op\|let\|fn\|abs\|ovr\|fin\|pub\|seal\|super\)\)\@=/
+syn match psiKeyword 	 /\<pro\>\(\s\+\(cls\|trait\|obj\|enum\|struct\|type\|val\|var\|op\|let\|fn\|abs\|ovr\|fin\|pub\|seal\|super\)\)\@!/	nextgroup=psiNameDefine skipwhite
 
 
 syn keyword psiSpecial this true false null
