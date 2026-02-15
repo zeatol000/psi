@@ -9,6 +9,7 @@ package psic.tools
 package comp.printing
 
 import scala.annotation.internal.sharable
+import scala.language.implicitConversions
 
 object Texts {
   @sharable private val ansi = java.util.regex.Pattern.compile("\u001b\\[\\d+m")
@@ -29,7 +30,7 @@ object Texts {
      * isFluid        F   F   T   T
      * isSplittable   F   F   F   T
      */
-    def isVertical:   Boolean = isIntanceOf[Vertical]
+    def isVertical:   Boolean = isInstanceOf[Vertical]
     def isClosed:     Boolean = isVertical || isInstanceOf[Closed]
     def isFluid:      Boolean = isInstanceOf[Fluid]
     def isSplittable: Boolean = isFluid && !isClosed
