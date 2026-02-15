@@ -39,6 +39,7 @@ syn sync minlines=200 maxlines=1000
 " false																								 "
 " fin			final																					 "
 " finally																							 "
+" for																									 "
 " fn			function																				 "
 " if																									 "
 " let																									 "
@@ -65,6 +66,7 @@ syn sync minlines=200 maxlines=1000
 " val																									 "
 " var																									 "
 " while																								 "
+" yield																								 "
 "												WILDCARDS											 "
 " ?																									 "
 " ..																									 "
@@ -73,7 +75,7 @@ syn sync minlines=200 maxlines=1000
 " /*  */																								 "
 " ---------------------------------------------------------------------------- "
 
-syn keyword psiKeyword catch else finally match throw try while if
+syn keyword psiKeyword catch else finally match throw try while if for yield
 syn keyword psiKeyword cls trait obj enum	struct type	nextgroup=psiInstanceDeclare 		  skipwhite
 syn keyword psiKeyword case									nextgroup=psiCaseFollowing 		  skipwhite
 syn keyword psiKeyword val var								nextgroup=psiNameDefine				  skipwhite
