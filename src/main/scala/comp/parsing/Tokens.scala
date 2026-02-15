@@ -59,18 +59,19 @@ abstract class TokensCommon {
   inline val LET       = 40;
   inline val FN        = 41;
   inline val OP        = 42;
-  inline val CLS       = 43;
-  inline val OBJ       = 44;
-  inline val STRUCT    = 45;
-  inline val ENUM      = 46;
-  inline val TYPE      = 47;
+  inline val PROGRAM   = 43;
+  inline val CLS       = 44;
+  inline val OBJ       = 45;
+  inline val STRUCT    = 46;
+  inline val ENUM      = 47;
+  inline val TYPE      = 48;
 
-  inline val OVR       = 48;
-  inline val ABS       = 49;
-  inline val FIN       = 50;
-  inline val PUB       = 51;
-  inline val PRO       = 52;
-  inline val SEAL      = 53;
+  inline val OVR       = 49;
+  inline val ABS       = 50;
+  inline val FIN       = 51;
+  inline val PUB       = 52;
+  inline val PROTECTED = 53;
+  inline val SEAL      = 54;
 
   /* special stuff */
   inline val COMMA     = 70;

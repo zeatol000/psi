@@ -7,16 +7,15 @@ pro main(): Void = {
 }
 
 fn fib(x: Int): Int = {
-	let r = 1
 	var ran: Int = 0
-	var i, j: Int = 1
+	var i, j, r: Int = 1
 	while (ran > x - 2) {
 		r = i + j
 		i = j
 		j = r
 		ran += 1
 	}
-	ret r
+	r
 }
 
 
