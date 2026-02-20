@@ -36,42 +36,44 @@ abstract class TokensCommon {
   inline val IF        = 20;
   inline val ELSE      = 21;
   inline val WHILE     = 22;
-  inline val TRY       = 23;
-  inline val CATCH     = 24;
-  inline val FINALLY   = 25;
-  inline val MATCH     = 26;
-  inline val CASE      = 27;
-  inline val THROW     = 28;
-  inline val RET       = 29;
+  inline val FOR       = 23;
+  inline val YIELD     = 24;
+  inline val TRY       = 25;
+  inline val CATCH     = 26;
+  inline val FINALLY   = 27;
+  inline val MATCH     = 28;
+  inline val CASE      = 29;
+  inline val THROW     = 30;
+  inline val RET       = 31;
 
-  inline val TRUE      = 30;
-  inline val FALSE     = 31;
-  inline val THIS      = 32;
-  inline val SUPER     = 33;
-  inline val NULL      = 34;
-  inline val NEW       = 35;
+  inline val TRUE      = 32;
+  inline val FALSE     = 33;
+  inline val THIS      = 34;
+  inline val SUPER     = 35;
+  inline val NULL      = 36;
+  inline val NEW       = 37;
 
-  inline val PKG       = 36;
-  inline val USE       = 37;
+  inline val PKG       = 38;
+  inline val USE       = 39;
   
-  inline val VAL       = 38;
-  inline val VAR       = 39;
-  inline val LET       = 40;
-  inline val FN        = 41;
-  inline val OP        = 42;
-  inline val PROGRAM   = 43;
-  inline val CLS       = 44;
-  inline val OBJ       = 45;
-  inline val STRUCT    = 46;
-  inline val ENUM      = 47;
-  inline val TYPE      = 48;
+  inline val VAL       = 40;
+  inline val VAR       = 41;
+  inline val LET       = 42;
+  inline val FN        = 43;
+  inline val OP        = 44;
+  inline val PGRM      = 45;
+  inline val CLS       = 46;
+  inline val OBJ       = 47;
+  inline val STRUCT    = 48;
+  inline val ENUM      = 49;
+  inline val TYPE      = 50;
 
-  inline val OVR       = 49;
-  inline val ABS       = 50;
-  inline val FIN       = 51;
-  inline val PUB       = 52;
-  inline val PROTECTED = 53;
-  inline val SEAL      = 54;
+  inline val OVR       = 51;
+  inline val ABS       = 52;
+  inline val FIN       = 53;
+  inline val PUB       = 54;
+  inline val PRO       = 55;
+  inline val SEAL      = 56;
 
   /* special stuff */
   inline val COMMA     = 70;

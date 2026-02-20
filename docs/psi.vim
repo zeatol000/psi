@@ -50,7 +50,7 @@ syn sync minlines=200 maxlines=1000
 " op			operation																			 "
 " ovr			override																				 "
 " pkg			package																				 "
-" pro			program																				 "
+" pgrm		program																				 "
 " pro			protected																			 "
 " pub			public																				 "
 " ret			return																				 "
@@ -78,7 +78,7 @@ syn sync minlines=200 maxlines=1000
 syn keyword psiKeyword catch else finally match throw try while if for yield
 syn keyword psiKeyword cls trait obj enum	struct type	nextgroup=psiInstanceDeclare 		  skipwhite
 syn keyword psiKeyword case									nextgroup=psiCaseFollowing 		  skipwhite
-syn keyword psiKeyword val var								nextgroup=psiNameDefine				  skipwhite
+syn keyword psiKeyword val var pgrm							nextgroup=psiNameDefine				  skipwhite
 syn keyword psiKeyword op let ret 							nextgroup=psiKeyword,psiNameDefine skipwhite
 syn keyword psiKeyword fn										nextgroup=psiSpecial2,psiNameDefine skipwhite
 hi def link psiKeyword Keyword
@@ -177,12 +177,8 @@ syn match psiCaseFollowing /`[^`]\+`/					contained contains=psiCapitalizedWord
 hi def link psiCaseFollowing Special
 
 
-syn keyword psiKeyModifier abs ovr fin pub seal super
+syn keyword psiKeyModifier abs ovr fin pub seal super pro
 hi def link psiKeyModifier Function
-
-
-syn match psiKeyModifier /\<pro\>\(\s\+\(cls\|trait\|obj\|enum\|struct\|type\|val\|var\|op\|let\|fn\|abs\|ovr\|fin\|pub\|seal\|super\)\)\@=/
-syn match psiKeyword 	 /\<pro\>\(\s\+\(cls\|trait\|obj\|enum\|struct\|type\|val\|var\|op\|let\|fn\|abs\|ovr\|fin\|pub\|seal\|super\)\)\@!/	nextgroup=psiNameDefine skipwhite
 
 
 syn keyword psiSpecial this true false null
